@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "infer-determinism"
+version = "0.1.0"
+description = "Probe bitwise batch invariance of LLM inference kernels"
+authors = [{name = "Chinmay Shrivastava"}]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["torch>=2.9"]
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+
+[tool.setuptools.packages.find]
+include = ["infer_determinism*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
