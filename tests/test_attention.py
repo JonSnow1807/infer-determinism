@@ -61,7 +61,7 @@ def test_matrix_and_quick_budget(monkeypatch):
     for module in (sdpa, fi, fa):
         cases = module.cases()
         assert len({c.name for c in cases}) == len(cases)
-        new = [c for c in cases if "num_q_heads" in c.shapes]
+        new = [c for c in cases if "num_q_heads" in c.shapes and not c.name.startswith("run3/")]
         assert {(c.shapes["num_q_heads"], c.shapes["num_kv_heads"]) for c in new} == set(GQA_HEADS)
         for c in new:
             if c.shapes["D"] == 256 or c.shapes["window"] == 4096:
@@ -305,3 +305,51 @@ def test_graph_rejects_unwritten_output(cpu_cuda):
     output = torch.zeros((3, 32, 128), dtype=torch.bfloat16)
     with pytest.raises(RuntimeError, match="nonfinite or unwritten"):
         replay_graph(SimpleNamespace(replay=lambda: None), output)
+
+
+def test_run3_flashinfer_cases_use_vllm_bi_plan(monkeypatch):
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+    monkeypatch.setattr(fi, "_library", lambda: SimpleNamespace())
+    run3 = [c for c in fi.cases() if c.name.startswith("run3/")]
+    prefill = [c for c in run3 if "batch_prefill" in c.name]
+    assert {c.shapes["backend"] for c in prefill} == {"auto", "fa3"}
+    assert all(c.shapes["plan"] == {"fixed_split_size": 4096, "disable_split_kv": True} for c in prefill)
+    assert all({"graph_replay", "chunk_size", "batch", "position"} <= set(c.perturbations) for c in prefill)
+    assert any(c.shapes["kv_dtype"] == "float8_e4m3fn" and c.shapes["q_dtype"] == "float8_e4m3fn" for c in prefill)
+    assert any(c.name.startswith("run3/trtllm_gen/") for c in run3)
+    assert len([c for c in run3 if not c.shapes.get("full_only")]) >= 8
+
+
+@pytest.mark.parametrize("resolved", ["fa3", "fa2"])
+def test_run3_flashinfer_forwards_vllm_plan_and_checks_resolution(cpu_cuda, monkeypatch, resolved):
+    seen = {}
+    class Wrapper:
+        def __init__(self, workspace, layout, **kwargs):
+            seen["ctor"] = kwargs
+            self._backend = kwargs["backend"]
+        def plan(self, *args, **kwargs):
+            seen["plan"] = kwargs
+            self._backend = resolved
+        def run(self, q, cache, **kwargs):
+            seen["run"] = kwargs
+            return q.to(torch.bfloat16)
+    monkeypatch.setattr(fi, "_library", lambda: SimpleNamespace(BatchPrefillWithPagedKVCacheWrapper=Wrapper))
+    base = BatchSpec(probe_kv_length=257, disable_split_kv=True)
+    config = AttentionConfig(32, 8, 128, fp8=True)
+    if resolved != "fa3":
+        with pytest.raises(SkipCase, match="resolved backend 'fa2'"):
+            fi._run(base, "batch_prefill", config=config, backend="auto", vllm_bi=True, expect_backend="fa3")
+        return
+    out = fi._run(base, "batch_prefill", config=config, backend="auto", vllm_bi=True, expect_backend="fa3")
+    assert out.dtype == torch.bfloat16
+    assert seen["ctor"]["backend"] == "auto"
+    assert seen["plan"]["fixed_split_size"] == 4096 and seen["plan"]["disable_split_kv"] is True
+    assert seen["plan"]["q_data_type"] == torch.float8_e4m3fn and seen["plan"]["o_data_type"] == torch.bfloat16
+    assert seen["run"] == {"k_scale": K_SCALE, "v_scale": V_SCALE, "q_scale": 0.5}
+
+
+def test_trtllm_gen_case_skips_off_blackwell(monkeypatch):
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+    monkeypatch.setattr(torch.cuda, "get_device_capability", lambda *a: (9, 0))
+    with pytest.raises(SkipCase, match="SM100"):
+        fi._trtllm_gen_unavailable(BatchSpec())
