@@ -20,18 +20,20 @@ python -m infer_determinism report results.jsonl > report.md
 python -m infer_determinism repro RECORD_ID --file results.jsonl > repro.py
 ```
 
-Use `--targets` to select from `torch_matmul`, `torch_sdpa`, `vllm_batch_invariant`, `vllm_invariant_mode`, `flashinfer`, `vllm_flash_attn`, and `moe`. The `vllm_invariant_mode` target calls vLLM's `init_batch_invariance()`; to reproduce the first H100 run's configuration for that target, leave `CUBLAS_WORKSPACE_CONFIG` unset before launching it. The other H100 targets used `:4096:8`.
+Use `--include REGEX` to run only cases whose name matches. Use `--targets` to select from `torch_matmul`, `torch_sdpa`, `vllm_batch_invariant`, `vllm_invariant_mode`, `flashinfer`, `vllm_flash_attn`, and `moe`. The `vllm_invariant_mode` target calls vLLM's `init_batch_invariance()`; to reproduce the first H100 run's configuration for that target, leave `CUBLAS_WORKSPACE_CONFIG` unset before launching it. The other H100 targets used `:4096:8`.
 
 ## Read the results
 
 The JSONL starts with environment metadata. `check` records are equal comparisons; `divergence` records include the compared configurations and a standalone reproducer; `pass` summarizes a case; `skip` and `error` give reasons. A skip is not a pass. The generated reproducer embeds harness code but still requires the target library and a compatible GPU stack. The Markdown report shows the first divergent configuration per case and perturbation; count all divergence records in JSONL for the full total.
 
-## First results
+## Results
 
 The [2026-11-06 H100 run](results/2026-11-06_h100/README.md) reports per-target counts, invariant observations, expected divergences, two bug candidates, and reproduction scripts. The [runner's report](results/2026-11-06_h100/REPORT.md) and per-target JSONL and Markdown files are retained alongside it.
 
+The [2026-11-09 H100 run](results/2026-11-09_h100/README.md) covers the second-run cases: GQA/MQA, D128 and D256, sliding windows and FP8 KV. It found no divergence in vLLM FlashAttention with `num_splits=1` or in FlashInfer decode with `disable_split_kv=True`, and one low-severity candidate: FlashInfer prefill at D128 differs between CUDA-graph replay and eager execution. It also profiles the decode cost of vLLM's batch-invariant mode.
+
 ## Status and limits
 
-The published GPU evidence is still one H100 NVL run with four heads and head dimension 64. The [second-run plan](docs/run2-plan.md) adds GQA/MQA (32/8, 64/8, 8/1), D128 and supported D256 kernels, sliding windows of 1024/4096 tokens, and scaled e4m3 FP8 KV probes. These additions have CPU contract tests but have not been run on a GPU here. Unsupported dependencies, signatures and known kernel restrictions produce explicit skips.
+The published GPU evidence is two H100 NVL runs. The first used four heads and head dimension 64. The second ran the [second-run plan](docs/run2-plan.md): GQA/MQA (32/8, 64/8, 8/1), D128 and supported D256 kernels, sliding windows of 1024/4096 tokens, and scaled e4m3 FP8 KV probes, for `torch_sdpa`, `flashinfer` and `vllm_flash_attn`. Unsupported dependencies, signatures and known kernel restrictions produce explicit skips.
 
 Quick includes representative D128 cases; larger shapes, 4096-token windows, compiled GEMMs and large legacy sweeps are full-only. Its approximately five-minute H100 budget remains to be measured, especially with cold JIT caches. Full mode retains the complete matrix. The raw attention targets do not test vLLM's native backend selection or full invariant policy; see the [`vllm_attention_layer` deferral](NOTES.md). Results cover one GPU and specific software/configurations, not numerical accuracy or cross-machine reproducibility. Run `python3 -m pytest -q tests` for the CPU harness tests.

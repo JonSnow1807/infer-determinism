@@ -1,0 +1,8 @@
+rep1 B=32 inv=0: decode 4279 tok/s, 7.48 ms/step; kernel-sum 6.90 ms/step; cublas_gemm 4.95ms (72%), attention 1.37ms (20%), rmsnorm 0.36ms (5%), other 0.22ms (3%)
+rep1 B=32 inv=1: decode 3492 tok/s, 9.16 ms/step; kernel-sum 8.46 ms/step; triton_BI_gemm 6.00ms (71%), attention 1.27ms (15%), other 0.65ms (8%), rmsnorm 0.55ms (6%)
+rep1 B=128 inv=0: decode 8202 tok/s, 15.61 ms/step; kernel-sum 14.17 ms/step; cublas_gemm 7.37ms (52%), attention 5.70ms (40%), other 0.57ms (4%), rmsnorm 0.53ms (4%)
+rep1 B=128 inv=1: decode 8612 tok/s, 14.86 ms/step; kernel-sum 13.58 ms/step; triton_BI_gemm 7.88ms (58%), attention 4.16ms (31%), other 0.79ms (6%), rmsnorm 0.75ms (6%)
+rep2 B=32 inv=0: decode 3661 tok/s, 8.74 ms/step; kernel-sum 8.25 ms/step; cublas_gemm 6.20ms (75%), attention 1.48ms (18%), rmsnorm 0.35ms (4%), other 0.22ms (3%)
+rep2 B=32 inv=1: decode 3403 tok/s, 9.40 ms/step; kernel-sum 8.54 ms/step; triton_BI_gemm 6.08ms (71%), attention 1.27ms (15%), other 0.65ms (8%), rmsnorm 0.54ms (6%)
+rep2 B=128 inv=0: decode 9166 tok/s, 13.96 ms/step; kernel-sum 11.75 ms/step; cublas_gemm 6.33ms (54%), attention 4.53ms (39%), rmsnorm 0.45ms (4%), other 0.44ms (4%)
+rep2 B=128 inv=1: decode 8549 tok/s, 14.97 ms/step; kernel-sum 13.38 ms/step; triton_BI_gemm 7.71ms (58%), attention 4.16ms (31%), other 0.76ms (6%), rmsnorm 0.73ms (5%)

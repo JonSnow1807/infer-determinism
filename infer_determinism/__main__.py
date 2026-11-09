@@ -15,6 +15,7 @@ def main(argv: list[str] | None = None) -> int:
     run = sub.add_parser("run", help="run determinism probes")
     run.add_argument("--targets", nargs="+", default=list(TARGETS))
     run.add_argument("--quick", action="store_true")
+    run.add_argument("--include", default=None, help="regex; only run cases whose name matches")
     run.add_argument("--out", type=Path, default=Path("results.jsonl"))
     report = sub.add_parser("report", help="print Markdown report")
     report.add_argument("path", type=Path)
@@ -23,7 +24,7 @@ def main(argv: list[str] | None = None) -> int:
     repro.add_argument("--file", type=Path, default=Path("results.jsonl"))
     args = parser.parse_args(argv)
     if args.command == "run":
-        records = run_targets(args.targets, args.out, args.quick)
+        records = run_targets(args.targets, args.out, args.quick, args.include)
         for kind in ("pass", "divergence", "skip", "error"):
             print(f"{kind}: {sum(r.get('type') == kind for r in records)}")
         print(f"Wrote {args.out}")

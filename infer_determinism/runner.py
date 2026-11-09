@@ -155,7 +155,7 @@ def run_case(case: Case, quick: bool = False, run_environment: dict[str, object]
     return records
 
 
-def run_targets(targets: Iterable[str], out: Path, quick: bool = False) -> list[dict[str, object]]:
+def run_targets(targets: Iterable[str], out: Path, quick: bool = False, include: str | None = None) -> list[dict[str, object]]:
     records: list[dict[str, object]] = [{"type": "metadata", **environment()}]
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open("w") as file:
@@ -172,6 +172,9 @@ def run_targets(targets: Iterable[str], out: Path, quick: bool = False) -> list[
                 cases = load_cases(target)
                 if not cases:
                     append([{"type": "skip", "target": target, "reason": "no importable cases in installed library"}])
+                if include:
+                    import re
+                    cases = [c for c in cases if re.search(include, c.name)]
                 for case in cases:
                     append(run_case(case, quick, records[0]))
             except (ImportError, SkipCase) as exc:

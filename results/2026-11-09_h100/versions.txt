@@ -1,0 +1,9 @@
+flashinfer-cubin==0.6.6
+flashinfer-python==0.7.2.post1
+torch==2.14.0
+torch_c_dlpack_ext==0.1.5
+torchaudio==2.11.0
+torchcodec==0.17.0
+torchvision==0.29.0
+triton==3.8.0
+vllm==0.33.0
