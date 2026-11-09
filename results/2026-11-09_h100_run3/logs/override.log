@@ -1,0 +1,12 @@
+START 2026-11-09T20:56:37Z
+/root/tri/3.9.0/triton/knobs.py:504: UserWarning: TRITON_DEFAULT_FP_FUSION is unset: defaulting to FP fusion ENABLED for backward compatibility in Triton 3.9. The default will change to DISABLED in Triton 3.10; set TRITON_DEFAULT_FP_FUSION=1 to keep fusion enabled or =0 to adopt the new default early and silence this warning.
+triton 3.9.0 sepB   BK=64 num_warps=4 num_stages=2: 0/19 runs differ, worst rel_err=9.80e-04
+/root/tri/3.9.0/triton/knobs.py:504: UserWarning: TRITON_DEFAULT_FP_FUSION is unset: defaulting to FP fusion ENABLED for backward compatibility in Triton 3.9. The default will change to DISABLED in Triton 3.10; set TRITON_DEFAULT_FP_FUSION=1 to keep fusion enabled or =0 to adopt the new default early and silence this warning.
+triton 3.9.0 rega   BK=64 num_warps=4 num_stages=2: 19/19 runs differ, worst rel_err=3.05e-02
+edited 2 warp_group_dot_wait pendings 1 -> 0 in /root/reports/run3/irdump/override/override/2NX4LSPCBCWVEUWYWRIDWVFDQSDWP4IHV4XA4GSGX3WZCD2XSMVA/scaled_gram_rega.ttgir
+/root/tri/3.9.0/triton/knobs.py:504: UserWarning: TRITON_DEFAULT_FP_FUSION is unset: defaulting to FP fusion ENABLED for backward compatibility in Triton 3.9. The default will change to DISABLED in Triton 3.10; set TRITON_DEFAULT_FP_FUSION=1 to keep fusion enabled or =0 to adopt the new default early and silence this warning.
+Overriding kernel with file /root/reports/run3/irdump/override/override/2NX4LSPCBCWVEUWYWRIDWVFDQSDWP4IHV4XA4GSGX3WZCD2XSMVA/scaled_gram_rega.ttgir
+triton 3.9.0 rega   BK=64 num_warps=4 num_stages=2: 0/19 runs differ, worst rel_err=9.80e-04
+3
+      3 wgmma.wait_group.sync.aligned 0
+EXIT=0 2026-11-09T20:56:49Z

@@ -1,0 +1,112 @@
+START 2026-11-09T20:35:25Z
+W1109 20:35:29.176000 6615 torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1109 20:35:29.176000 6615 torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1109 20:35:29.176000 6615 torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+torch 2.14.0+cu130 | triton 3.9.0 | vllm.third_party.flash_linear_attention.ops.chunk_scaled_dot_kkt | NVIDIA H100 NVL (sm90)
+27 autotune configs
+
+/root/tri/3.9.0/triton/knobs.py:504: UserWarning: TRITON_DEFAULT_FP_FUSION is unset: defaulting to FP fusion ENABLED for backward compatibility in Triton 3.9. The default will change to DISABLED in Triton 3.10; set TRITON_DEFAULT_FP_FUSION=1 to keep fusion enabled or =0 to adopt the new default early and silence this warning.
+  warn_once(FP_FUSION_DEFAULT_WARNING)
+BK=32  num_warps=2 num_stages=2      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=32  num_warps=2 num_stages=3      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=32  num_warps=2 num_stages=4      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=32  num_warps=4 num_stages=2      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=32  num_warps=4 num_stages=3      deterministic=False rel_err_vs_fp32_ref=9.76e-03 <-- BAD
+BK=32  num_warps=4 num_stages=4      deterministic=False rel_err_vs_fp32_ref=1.10e-02 <-- BAD
+BK=32  num_warps=8 num_stages=2      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=32  num_warps=8 num_stages=3      deterministic=False rel_err_vs_fp32_ref=1.66e-03 <-- BAD
+BK=32  num_warps=8 num_stages=4      deterministic=False rel_err_vs_fp32_ref=3.22e-03 <-- BAD
+BK=64  num_warps=2 num_stages=2      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=64  num_warps=2 num_stages=3      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=64  num_warps=2 num_stages=4      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=64  num_warps=4 num_stages=2      deterministic=False rel_err_vs_fp32_ref=4.74e-02 <-- BAD
+BK=64  num_warps=4 num_stages=3      deterministic=False rel_err_vs_fp32_ref=2.47e-02 <-- BAD
+BK=64  num_warps=4 num_stages=4      deterministic=False rel_err_vs_fp32_ref=2.43e-02 <-- BAD
+BK=64  num_warps=8 num_stages=2      deterministic=False rel_err_vs_fp32_ref=1.79e-02 <-- BAD
+BK=64  num_warps=8 num_stages=3      deterministic=False rel_err_vs_fp32_ref=1.36e-02 <-- BAD
+BK=64  num_warps=8 num_stages=4      deterministic=False rel_err_vs_fp32_ref=1.56e-02 <-- BAD
+BK=128 num_warps=2 num_stages=2      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=2 num_stages=3      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=2 num_stages=4      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=4 num_stages=2      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=4 num_stages=3      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=4 num_stages=4      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=8 num_stages=2      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=8 num_stages=3      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=8 num_stages=4      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+
+10 / 27 configs are wrong
+W1109 20:35:34.558000 6807 torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1109 20:35:34.558000 6807 torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1109 20:35:34.559000 6807 torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+torch 2.14.0+cu130 | triton 3.9.0 | vllm.third_party.flash_linear_attention.ops.chunk_scaled_dot_kkt_v0191 | NVIDIA H100 NVL (sm90)
+27 autotune configs
+
+/root/tri/3.9.0/triton/knobs.py:504: UserWarning: TRITON_DEFAULT_FP_FUSION is unset: defaulting to FP fusion ENABLED for backward compatibility in Triton 3.9. The default will change to DISABLED in Triton 3.10; set TRITON_DEFAULT_FP_FUSION=1 to keep fusion enabled or =0 to adopt the new default early and silence this warning.
+  warn_once(FP_FUSION_DEFAULT_WARNING)
+Traceback (most recent call last):
+  File "/root/tri/3.9.0/triton/language/core.py", line 44, in wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/root/tri/3.9.0/triton/language/core.py", line 2523, in make_block_ptr
+    raise NotImplementedError("Block pointers have been removed in favor of the tensor descriptor API")
+NotImplementedError: Block pointers have been removed in favor of the tensor descriptor API
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/root/infer-determinism/scripts/repro_kkt_issue65385.py", line 91, in <module>
+    main()
+  File "/root/infer-determinism/scripts/repro_kkt_issue65385.py", line 77, in main
+    a1, a2 = run(), run()
+             ^^^^^
+  File "/root/infer-determinism/scripts/repro_kkt_issue65385.py", line 75, in <lambda>
+    run = lambda: M.chunk_scaled_dot_kkt_fwd(k=k.clone(), g=g.clone(), beta=beta.clone(),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/venv3/lib/python3.12/site-packages/vllm/third_party/flash_linear_attention/ops/chunk_scaled_dot_kkt_v0191.py", line 144, in chunk_scaled_dot_kkt_fwd
+    chunk_scaled_dot_kkt_fwd_kernel[(NT, B * H)](
+  File "/root/tri/3.9.0/triton/runtime/jit.py", line 375, in <lambda>
+    return lambda *args, **kwargs: self.run(grid=grid, warmup=False, *args, **kwargs)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/tri/3.9.0/triton/runtime/autotuner.py", line 503, in run
+    return self.fn.run(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/tri/3.9.0/triton/runtime/autotuner.py", line 291, in run
+    ret = self.fn.run(
+          ^^^^^^^^^^^^
+  File "/root/tri/3.9.0/triton/runtime/jit.py", line 765, in run
+    kernel = self._do_compile(key, signature, device, constexprs, options, attrs, warmup)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/tri/3.9.0/triton/runtime/jit.py", line 917, in _do_compile
+    kernel = self.compile(src, target=target, options=options.__dict__)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/tri/3.9.0/triton/compiler/compiler.py", line 307, in compile
+    module = src.make_ir(target, options, codegen_fns, module_map, context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/tri/3.9.0/triton/compiler/compiler.py", line 80, in make_ir
+    return ast_to_ttir(self.fn, self, context=context, options=options, codegen_fns=codegen_fns,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+triton.compiler.errors.CompilationError: at 34:13:
+        )
+        bos, eos = (
+            tl.load(cu_seqlens + i_n).to(tl.int32),
+            tl.load(cu_seqlens + i_n + 1).to(tl.int32),
+        )
+        T = eos - bos
+    else:
+        bos, eos = i_b * T, i_b * T + T
+    o_t = i_t * BT + tl.arange(0, BT)
+    m_t = o_t < T
+
+    p_beta = tl.make_block_ptr(
+             ^
+Block pointers have been removed in favor of the tensor descriptor API
+W1109 20:35:40.242000 7164 venv3/lib/python3.12/site-packages/torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1109 20:35:40.242000 7164 venv3/lib/python3.12/site-packages/torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1109 20:35:40.242000 7164 venv3/lib/python3.12/site-packages/torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+/root/tri/3.9.0/triton/knobs.py:504: UserWarning: TRITON_DEFAULT_FP_FUSION is unset: defaulting to FP fusion ENABLED for backward compatibility in Triton 3.9. The default will change to DISABLED in Triton 3.10; set TRITON_DEFAULT_FP_FUSION=1 to keep fusion enabled or =0 to adopt the new default early and silence this warning.
+  warn_once(FP_FUSION_DEFAULT_WARNING)
+config errors: 0
+launches swept: 1, flagged configs: 0, flagged e2e checks: 0, skips: 0, errors: 1
+Wrote /root/reports/run3/control_v0191_triton3.9.0.jsonl
+EXIT=0 2026-11-09T20:35:46Z

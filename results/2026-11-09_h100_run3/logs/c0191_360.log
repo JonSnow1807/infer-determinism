@@ -1,0 +1,78 @@
+START 2026-11-09T20:35:14Z
+W1109 20:35:17.498000 5911 torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1109 20:35:17.499000 5911 torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1109 20:35:17.499000 5911 torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+torch 2.14.0+cu130 | triton 3.6.0 | vllm.third_party.flash_linear_attention.ops.chunk_scaled_dot_kkt | NVIDIA H100 NVL (sm90)
+27 autotune configs
+
+BK=32  num_warps=2 num_stages=2      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=32  num_warps=2 num_stages=3      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=32  num_warps=2 num_stages=4      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=32  num_warps=4 num_stages=2      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=32  num_warps=4 num_stages=3      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=32  num_warps=4 num_stages=4      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=32  num_warps=8 num_stages=2      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=32  num_warps=8 num_stages=3      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=32  num_warps=8 num_stages=4      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=64  num_warps=2 num_stages=2      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=64  num_warps=2 num_stages=3      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=64  num_warps=2 num_stages=4      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=64  num_warps=4 num_stages=2      deterministic=False rel_err_vs_fp32_ref=2.12e-03 <-- BAD
+BK=64  num_warps=4 num_stages=3      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=64  num_warps=4 num_stages=4      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=64  num_warps=8 num_stages=2      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=64  num_warps=8 num_stages=3      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=64  num_warps=8 num_stages=4      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=2 num_stages=2      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=2 num_stages=3      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=2 num_stages=4      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=4 num_stages=2      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=4 num_stages=3      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=4 num_stages=4      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=8 num_stages=2      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=8 num_stages=3      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=8 num_stages=4      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+
+1 / 27 configs are wrong
+W1109 20:35:22.510000 6177 torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1109 20:35:22.511000 6177 torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1109 20:35:22.511000 6177 torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+torch 2.14.0+cu130 | triton 3.6.0 | vllm.third_party.flash_linear_attention.ops.chunk_scaled_dot_kkt_v0191 | NVIDIA H100 NVL (sm90)
+27 autotune configs
+
+BK=32  num_warps=2 num_stages=2      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=32  num_warps=2 num_stages=3      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=32  num_warps=2 num_stages=4      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=32  num_warps=4 num_stages=2      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=32  num_warps=4 num_stages=3      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=32  num_warps=4 num_stages=4      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=32  num_warps=8 num_stages=2      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=32  num_warps=8 num_stages=3      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=32  num_warps=8 num_stages=4      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=64  num_warps=2 num_stages=2      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=64  num_warps=2 num_stages=3      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=64  num_warps=2 num_stages=4      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=64  num_warps=4 num_stages=2      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=64  num_warps=4 num_stages=3      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=64  num_warps=4 num_stages=4      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=64  num_warps=8 num_stages=2      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=64  num_warps=8 num_stages=3      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=64  num_warps=8 num_stages=4      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=2 num_stages=2      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=2 num_stages=3      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=2 num_stages=4      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=4 num_stages=2      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=4 num_stages=3      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=4 num_stages=4      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=8 num_stages=2      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=8 num_stages=3      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=8 num_stages=4      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+
+0 / 27 configs are wrong
+W1109 20:35:35.551000 6855 venv3/lib/python3.12/site-packages/torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1109 20:35:35.551000 6855 venv3/lib/python3.12/site-packages/torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1109 20:35:35.552000 6855 venv3/lib/python3.12/site-packages/torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+config errors: 0
+launches swept: 2, flagged configs: 2, flagged e2e checks: 0, skips: 0, errors: 0
+Wrote /root/reports/run3/control_v0191_triton3.6.0.jsonl
+EXIT=0 2026-11-09T20:35:41Z

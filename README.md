@@ -20,6 +20,8 @@ python -m infer_determinism report results.jsonl > report.md
 python -m infer_determinism repro RECORD_ID --file results.jsonl > repro.py
 ```
 
+`python -m infer_determinism sweep --scenarios ... --out sweep.jsonl` runs the autotune-config sweep: it captures every Triton autotuner launch under a scenario (vLLM's vendored GDN and KDA chunk kernels, Mamba2 SSD, upstream FLA) and replays each launch once per config, flagging configs that are not bitwise repeatable or disagree with a float32 reference or with the other configs. `sweep --list` names the scenarios; `sweep-report FILE` renders Markdown.
+
 Use `--include REGEX` to run only cases whose name matches. Use `--targets` to select from `torch_matmul`, `torch_sdpa`, `vllm_batch_invariant`, `vllm_invariant_mode`, `flashinfer`, `vllm_flash_attn`, and `moe`. The `vllm_invariant_mode` target calls vLLM's `init_batch_invariance()`; to reproduce the first H100 run's configuration for that target, leave `CUBLAS_WORKSPACE_CONFIG` unset before launching it. The other H100 targets used `:4096:8`.
 
 ## Read the results
@@ -32,8 +34,10 @@ The [2026-11-06 H100 run](results/2026-11-06_h100/README.md) reports per-target 
 
 The [2026-11-09 H100 run](results/2026-11-09_h100/README.md) covers the second-run cases: GQA/MQA, D128 and D256, sliding windows and FP8 KV. It found no divergence in vLLM FlashAttention with `num_splits=1` or in FlashInfer tensor-core decode with `disable_split_kv=True`, and one low-severity candidate: FlashInfer prefill at D128 differs between CUDA-graph replay and eager execution. It also profiles the decode cost of vLLM's batch-invariant mode.
 
+The [2026-11-09 H100 run 3](results/2026-11-09_h100_run3/README.md) adds the autotune-config sweep, speculative decoding under `VLLM_BATCH_INVARIANT=1`, and FlashInfer FA3 with vLLM's batch-invariant plan arguments. Across 37 autotuned launches and Triton 3.6.0 to 3.9.0 and `main`, only the known `chunk_scaled_dot_kkt` kernel of vllm#65385 failed; spec decoding (n-gram, EAGLE3) and FA3 were invariant. Tracing the kkt failure gave a 15-line Triton repro of a pipelined-wgmma race on Hopper that persists on Triton 3.9.0 and `main` with the fixed `ptxas`, and a kernel-side fix that is deterministic across all 27 configs.
+
 ## Status and limits
 
-The published GPU evidence is two H100 NVL runs. The first used four heads and head dimension 64. The second ran the [second-run plan](docs/run2-plan.md): GQA/MQA (32/8, 64/8, 8/1), D128 and supported D256 kernels, sliding windows of 1024/4096 tokens, and scaled e4m3 FP8 KV probes, for `torch_sdpa`, `flashinfer` and `vllm_flash_attn`. Unsupported dependencies, signatures and known kernel restrictions produce explicit skips.
+The published GPU evidence is three H100 NVL runs. The first used four heads and head dimension 64. The second ran the [second-run plan](docs/run2-plan.md): GQA/MQA (32/8, 64/8, 8/1), D128 and supported D256 kernels, sliding windows of 1024/4096 tokens, and scaled e4m3 FP8 KV probes, for `torch_sdpa`, `flashinfer` and `vllm_flash_attn`. Unsupported dependencies, signatures and known kernel restrictions produce explicit skips.
 
 Quick includes representative D128 cases; larger shapes, 4096-token windows, compiled GEMMs and large legacy sweeps are full-only. Its approximately five-minute H100 budget remains to be measured, especially with cold JIT caches. Full mode retains the complete matrix. The raw attention targets do not test vLLM's native backend selection or full invariant policy; see the [`vllm_attention_layer` deferral](NOTES.md). Results cover one GPU and specific software/configurations, not numerical accuracy or cross-machine reproducibility. Run `python3 -m pytest -q tests` for the CPU harness tests.

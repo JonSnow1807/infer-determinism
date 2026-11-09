@@ -1,0 +1,1 @@
+export DEBIAN_FRONTEND=noninteractive; apt-get update -qq >/dev/null 2>&1; apt-get install -y -qq tmux rsync htop >/dev/null 2>&1; mkdir -p /root/reports /root/logs /root/jobs; env | grep _ >> /etc/environment; date -u > /root/.onstart_done

@@ -1,0 +1,8 @@
+START 2026-11-09T20:33:17Z
+W1109 20:33:20.620000 3431 venv3/lib/python3.12/site-packages/torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1109 20:33:20.620000 3431 venv3/lib/python3.12/site-packages/torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1109 20:33:20.620000 3431 venv3/lib/python3.12/site-packages/torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+config errors: 0
+launches swept: 13, flagged configs: 0, flagged e2e checks: 0, skips: 0, errors: 0
+Wrote /root/reports/run3/sweep_triton3.8.0_kda.jsonl
+EXIT=0 2026-11-09T20:35:35Z

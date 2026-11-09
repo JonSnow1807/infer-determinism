@@ -1,0 +1,131 @@
+START 2026-11-09T20:35:36Z
+Capturing CUDA graphs (FULL):   0%|          | 0/11 [00:00<?, ?it/s]Capturing CUDA graphs (FULL):  18%|█▊        | 2/11 [00:00<00:00, 19.59it/s]Capturing CUDA graphs (FULL):  45%|████▌     | 5/11 [00:00<00:00, 20.19it/s]Capturing CUDA graphs (FULL):  73%|███████▎  | 8/11 [00:00<00:00, 18.92it/s]Capturing CUDA graphs (FULL): 100%|██████████| 11/11 [00:00<00:00, 19.62it/s]Capturing CUDA graphs (FULL): 100%|██████████| 11/11 [00:00<00:00, 19.56it/s]
+(EngineCore pid=7891) INFO 11-09 20:37:41 [model_runner.py:1163] Graph capturing finished in 2 secs, took -0.83 GiB
+(EngineCore pid=7891) INFO 11-09 20:37:41 [gpu_worker.py:1066] Free memory on device (90.78/93.09 GiB) on startup. Desired GPU memory utilization is (0.5, 46.54 GiB). Actual usage is 29.72 GiB for consumed memory (weights + non-torch), 1.62 GiB for peak activation, and -0.83 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=17054070784` (15.88 GiB) to fit into requested memory, or `--kv-cache-memory=64555907072` (60.12 GiB) to fully utilize gpu memory. Current kv cache memory in use is 15.2 GiB.
+(EngineCore pid=7891) INFO 11-09 20:37:42 [jit_monitor.py:84] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(EngineCore pid=7891) INFO 11-09 20:37:42 [core.py:412] init engine (profile, create kv cache, warmup model) took 90.51 s
+(EngineCore pid=7891) INFO 11-09 20:37:42 [kernel.py:480] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'], gelu_and_mul_sparse=['triton', 'native'])
+(MainProcess pid=7162) INFO 11-09 20:37:43 [hf.py:736] Detected the chat template content format to be 'string'. You can set `--chat-template-content-format` to override this.
+(EngineCore pid=7891) WARNING 11-09 20:37:55 [jit_monitor.py:140] Triton kernel JIT compilation during inference: matmul_kernel_persistent. This causes a latency spike; consider extending warmup to cover this shape/config.
+(MainProcess pid=7162) INFO 11-09 20:39:39 [utils.py:628] [shutdown] Process manager: send sigterm to process EngineCore
+(EngineCore pid=7891) INFO 11-09 20:39:39 [core.py:1525] [shutdown] EngineCore: trigger received signal=SIGTERM
+(EngineCore pid=7891) INFO 11-09 20:39:39 [core.py:1712] [shutdown] EngineCore: start mode=abort timeout=0s
+(EngineCore pid=7891) INFO 11-09 20:39:39 [core.py:1743] [shutdown] EngineCore: request processing complete; starting resource teardown
+(EngineCore pid=7891) INFO 11-09 20:39:39 [core.py:1573] [shutdown] EngineCore: exiting busy loop
+{
+ "vllm": "0.33.0",
+ "model": "Qwen/Qwen3-8B",
+ "method": "none",
+ "speculative_config": null,
+ "backend": "FLASH_ATTN",
+ "eager": false,
+ "batch_sizes": [
+  1,
+  2,
+  8,
+  32,
+  64
+ ],
+ "max_tokens": 160,
+ "logprobs": true,
+ "seconds": 116.2,
+ "spec_metrics": {
+  "error": "Stat logging disabled"
+ },
+ "env": {
+  "VLLM_BATCH_INVARIANT": "1",
+  "CUBLAS_WORKSPACE_CONFIG": ":4096:8"
+ },
+ "all_equal": true
+}
+all_equal: True
+(EngineCore pid=12119) INFO 11-09 20:40:28 [kernel.py:480] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'], gelu_and_mul_sparse=['triton', 'native'])
+(MainProcess pid=11890) INFO 11-09 20:40:28 [hf.py:736] Detected the chat template content format to be 'string'. You can set `--chat-template-content-format` to override this.
+(EngineCore pid=12119) WARNING 11-09 20:40:31 [jit_monitor.py:140] Triton kernel JIT compilation during inference: matmul_kernel_persistent. This causes a latency spike; consider extending warmup to cover this shape/config.
+(MainProcess pid=11890) INFO 11-09 20:42:41 [utils.py:628] [shutdown] Process manager: send sigterm to process EngineCore
+(EngineCore pid=12119) INFO 11-09 20:42:41 [core.py:1525] [shutdown] EngineCore: trigger received signal=SIGTERM
+(EngineCore pid=12119) INFO 11-09 20:42:41 [core.py:1712] [shutdown] EngineCore: start mode=abort timeout=0s
+(EngineCore pid=12119) INFO 11-09 20:42:41 [core.py:1743] [shutdown] EngineCore: request processing complete; starting resource teardown
+(EngineCore pid=12119) INFO 11-09 20:42:41 [core.py:1573] [shutdown] EngineCore: exiting busy loop
+{
+ "vllm": "0.33.0",
+ "model": "Qwen/Qwen3-8B",
+ "method": "ngram",
+ "speculative_config": {
+  "method": "ngram",
+  "num_speculative_tokens": 3,
+  "prompt_lookup_max": 5,
+  "prompt_lookup_min": 2
+ },
+ "backend": "FLASH_ATTN",
+ "eager": false,
+ "batch_sizes": [
+  1,
+  2,
+  8,
+  32,
+  64
+ ],
+ "max_tokens": 160,
+ "logprobs": true,
+ "seconds": 132.7,
+ "spec_metrics": {
+  "error": "Stat logging disabled"
+ },
+ "env": {
+  "VLLM_BATCH_INVARIANT": "1",
+  "CUBLAS_WORKSPACE_CONFIG": ":4096:8"
+ },
+ "all_equal": true
+}
+all_equal: True
+(EngineCore pid=16563) INFO 11-09 20:43:41 [core.py:412] init engine (profile, create kv cache, warmup model) took 22.88 s
+(EngineCore pid=16563) INFO 11-09 20:43:41 [kernel.py:480] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'], gelu_and_mul_sparse=['triton', 'native'])
+(MainProcess pid=15754) INFO 11-09 20:43:41 [hf.py:736] Detected the chat template content format to be 'string'. You can set `--chat-template-content-format` to override this.
+(EngineCore pid=16563) WARNING 11-09 20:43:47 [jit_monitor.py:140] Triton kernel JIT compilation during inference: matmul_kernel_persistent. This causes a latency spike; consider extending warmup to cover this shape/config.
+(MainProcess pid=15754) INFO 11-09 20:44:59 [utils.py:628] [shutdown] Process manager: send sigterm to process EngineCore
+(EngineCore pid=16563) INFO 11-09 20:44:59 [core.py:1525] [shutdown] EngineCore: trigger received signal=SIGTERM
+(EngineCore pid=16563) INFO 11-09 20:44:59 [core.py:1712] [shutdown] EngineCore: start mode=abort timeout=0s
+(EngineCore pid=16563) INFO 11-09 20:44:59 [core.py:1743] [shutdown] EngineCore: request processing complete; starting resource teardown
+(EngineCore pid=16563) INFO 11-09 20:44:59 [core.py:1573] [shutdown] EngineCore: exiting busy loop
+{
+ "vllm": "0.33.0",
+ "model": "Qwen/Qwen3-8B",
+ "method": "eagle3",
+ "speculative_config": {
+  "method": "eagle3",
+  "model": "RedHatAI/Qwen3-8B-speculator.eagle3",
+  "num_speculative_tokens": 3
+ },
+ "backend": "FLASH_ATTN",
+ "eager": false,
+ "batch_sizes": [
+  1,
+  2,
+  8,
+  32,
+  64
+ ],
+ "max_tokens": 160,
+ "logprobs": true,
+ "seconds": 77.7,
+ "spec_metrics": {
+  "error": "Stat logging disabled"
+ },
+ "env": {
+  "VLLM_BATCH_INVARIANT": "1",
+  "CUBLAS_WORKSPACE_CONFIG": ":4096:8"
+ },
+ "all_equal": true
+}
+all_equal: True
+none    vllm 0.33.0 backend FLASH_ATTN eager=False logprobs=True: 36/36 comparisons bitwise equal
+ngram   vllm 0.33.0 backend FLASH_ATTN eager=False logprobs=True: 36/36 comparisons bitwise equal
+   context only (vllm#54506): probe0 ngram vs none: tokens_equal=True first_diff=None
+   context only (vllm#54506): probe1 ngram vs none: tokens_equal=True first_diff=None
+   context only (vllm#54506): probe2 ngram vs none: tokens_equal=True first_diff=None
+eagle3  vllm 0.33.0 backend FLASH_ATTN eager=False logprobs=True: 36/36 comparisons bitwise equal
+   context only (vllm#54506): probe0 eagle3 vs none: tokens_equal=True first_diff=None
+   context only (vllm#54506): probe1 eagle3 vs none: tokens_equal=True first_diff=None
+   context only (vllm#54506): probe2 eagle3 vs none: tokens_equal=True first_diff=None
+EXIT=0 2026-11-09T20:45:02Z

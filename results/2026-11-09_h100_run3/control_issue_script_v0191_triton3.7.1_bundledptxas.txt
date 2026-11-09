@@ -1,0 +1,37 @@
+W1109 20:40:33.646000 13714 torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1109 20:40:33.647000 13714 torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1109 20:40:33.647000 13714 torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+torch 2.14.0+cu130 | triton 3.7.1 | vllm.third_party.flash_linear_attention.ops.chunk_scaled_dot_kkt_v0191 | NVIDIA H100 NVL (sm90)
+27 autotune configs
+
+/root/tri/3.7.1/triton/language/core.py:2284: UserWarning: tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.
+  warn("tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.")
+BK=32  num_warps=2 num_stages=2      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=32  num_warps=2 num_stages=3      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=32  num_warps=2 num_stages=4      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=32  num_warps=4 num_stages=2      deterministic=False rel_err_vs_fp32_ref=1.66e-03 <-- BAD
+BK=32  num_warps=4 num_stages=3      deterministic=False rel_err_vs_fp32_ref=1.66e-03 <-- BAD
+BK=32  num_warps=4 num_stages=4      deterministic=False rel_err_vs_fp32_ref=4.98e-03 <-- BAD
+BK=32  num_warps=8 num_stages=2      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=32  num_warps=8 num_stages=3      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=32  num_warps=8 num_stages=4      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=64  num_warps=2 num_stages=2      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=64  num_warps=2 num_stages=3      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=64  num_warps=2 num_stages=4      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=64  num_warps=4 num_stages=2      deterministic=False rel_err_vs_fp32_ref=2.16e-02 <-- BAD
+BK=64  num_warps=4 num_stages=3      deterministic=False rel_err_vs_fp32_ref=1.41e-02 <-- BAD
+BK=64  num_warps=4 num_stages=4      deterministic=False rel_err_vs_fp32_ref=1.36e-02 <-- BAD
+BK=64  num_warps=8 num_stages=2      deterministic=False rel_err_vs_fp32_ref=1.07e-02 <-- BAD
+BK=64  num_warps=8 num_stages=3      deterministic=False rel_err_vs_fp32_ref=9.43e-03 <-- BAD
+BK=64  num_warps=8 num_stages=4      deterministic=False rel_err_vs_fp32_ref=9.71e-03 <-- BAD
+BK=128 num_warps=2 num_stages=2      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=2 num_stages=3      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=2 num_stages=4      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=4 num_stages=2      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=4 num_stages=3      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=4 num_stages=4      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=8 num_stages=2      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=8 num_stages=3      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+BK=128 num_warps=8 num_stages=4      deterministic=True  rel_err_vs_fp32_ref=1.66e-03 
+
+9 / 27 configs are wrong

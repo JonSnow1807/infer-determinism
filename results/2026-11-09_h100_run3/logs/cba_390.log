@@ -1,0 +1,10 @@
+START 2026-11-09T20:37:43Z
+W1109 20:37:46.823000 10330 torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1109 20:37:46.823000 10330 torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1109 20:37:46.824000 10330 torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+/root/tri/3.9.0/triton/knobs.py:504: UserWarning: TRITON_DEFAULT_FP_FUSION is unset: defaulting to FP fusion ENABLED for backward compatibility in Triton 3.9. The default will change to DISABLED in Triton 3.10; set TRITON_DEFAULT_FP_FUSION=1 to keep fusion enabled or =0 to adopt the new default early and silence this warning.
+  warn_once(FP_FUSION_DEFAULT_WARNING)
+config errors: 0
+launches swept: 1, flagged configs: 0, flagged e2e checks: 0, skips: 0, errors: 0
+Wrote /root/reports/run3/control_betaafter_triton3.9.0.jsonl
+EXIT=0 2026-11-09T20:38:12Z

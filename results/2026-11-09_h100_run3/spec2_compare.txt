@@ -1,0 +1,13 @@
+none    vllm 0.33.0 backend FLASH_ATTN eager=False logprobs=True: 36/36 comparisons bitwise equal
+ngram   vllm 0.33.0 backend FLASH_ATTN eager=False logprobs=True: 36/36 comparisons bitwise equal
+   context only (vllm#54506): probe0 ngram vs none: tokens_equal=True first_diff=None
+   context only (vllm#54506): probe1 ngram vs none: tokens_equal=True first_diff=None
+   context only (vllm#54506): probe2 ngram vs none: tokens_equal=True first_diff=None
+eagle3  vllm 0.33.0 backend FLASH_ATTN eager=False logprobs=True: 36/36 comparisons bitwise equal
+   context only (vllm#54506): probe0 eagle3 vs none: tokens_equal=True first_diff=None
+   context only (vllm#54506): probe1 eagle3 vs none: tokens_equal=True first_diff=None
+   context only (vllm#54506): probe2 eagle3 vs none: tokens_equal=True first_diff=None
+eagle3  vllm 0.33.0 backend TRITON_ATTN eager=False logprobs=True: 36/36 comparisons bitwise equal
+   context only (vllm#54506): probe0 eagle3 vs none: tokens_equal=True first_diff=None
+   context only (vllm#54506): probe1 eagle3 vs none: tokens_equal=False first_diff=5
+   context only (vllm#54506): probe2 eagle3 vs none: tokens_equal=True first_diff=None

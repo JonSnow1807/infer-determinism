@@ -1,0 +1,100 @@
+START 2026-11-09T20:50:17Z
+(EngineCore pid=21984) INFO 11-09 20:51:39 [core.py:1573] [shutdown] EngineCore: exiting busy loop
+{
+ "vllm": "0.33.0",
+ "model": "Qwen/Qwen3-8B",
+ "method": "ngram",
+ "speculative_config": {
+  "method": "ngram",
+  "num_speculative_tokens": 3,
+  "prompt_lookup_max": 5,
+  "prompt_lookup_min": 2
+ },
+ "backend": "FLASH_ATTN",
+ "eager": false,
+ "batch_sizes": [
+  1,
+  2,
+  8,
+  32,
+  64
+ ],
+ "max_tokens": 160,
+ "logprobs": true,
+ "seconds": 52.0,
+ "spec_metrics": {
+  "vllm:spec_decode_num_drafts": 62771,
+  "vllm:spec_decode_num_draft_tokens": 188313,
+  "vllm:spec_decode_num_accepted_tokens": 46581,
+  "vllm:spec_decode_num_accepted_tokens_per_pos": [
+   17727,
+   15686,
+   13168
+  ]
+ },
+ "env": {
+  "VLLM_BATCH_INVARIANT": "1",
+  "CUBLAS_WORKSPACE_CONFIG": ":4096:8"
+ },
+ "all_equal": true
+}
+all_equal: True
+(EngineCore pid=24008) INFO 11-09 20:52:54 [core.py:1743] [shutdown] EngineCore: request processing complete; starting resource teardown
+(EngineCore pid=24008) INFO 11-09 20:52:54 [core.py:1573] [shutdown] EngineCore: exiting busy loop
+{
+ "vllm": "0.33.0",
+ "model": "Qwen/Qwen3-8B",
+ "method": "eagle3",
+ "speculative_config": {
+  "method": "eagle3",
+  "model": "RedHatAI/Qwen3-8B-speculator.eagle3",
+  "num_speculative_tokens": 3
+ },
+ "backend": "FLASH_ATTN",
+ "eager": false,
+ "batch_sizes": [
+  1,
+  2,
+  8,
+  32,
+  64
+ ],
+ "max_tokens": 160,
+ "logprobs": true,
+ "seconds": 38.4,
+ "spec_metrics": {
+  "vllm:spec_decode_num_drafts": 40763,
+  "vllm:spec_decode_num_draft_tokens": 122289,
+  "vllm:spec_decode_num_accepted_tokens": 68965,
+  "vllm:spec_decode_num_accepted_tokens_per_pos": [
+   29435,
+   23474,
+   16056
+  ]
+ },
+ "env": {
+  "VLLM_BATCH_INVARIANT": "1",
+  "CUBLAS_WORKSPACE_CONFIG": ":4096:8"
+ },
+ "all_equal": true
+}
+all_equal: True
+  "CUBLAS_WORKSPACE_CONFIG": ":4096:8"
+ },
+ "all_equal": true
+}
+all_equal: True
+none    vllm 0.33.0 backend FLASH_ATTN eager=False logprobs=True: 36/36 comparisons bitwise equal
+ngram   vllm 0.33.0 backend FLASH_ATTN eager=False logprobs=True: 36/36 comparisons bitwise equal
+   context only (vllm#54506): probe0 ngram vs none: tokens_equal=True first_diff=None
+   context only (vllm#54506): probe1 ngram vs none: tokens_equal=True first_diff=None
+   context only (vllm#54506): probe2 ngram vs none: tokens_equal=True first_diff=None
+eagle3  vllm 0.33.0 backend FLASH_ATTN eager=False logprobs=True: 36/36 comparisons bitwise equal
+   context only (vllm#54506): probe0 eagle3 vs none: tokens_equal=True first_diff=None
+   context only (vllm#54506): probe1 eagle3 vs none: tokens_equal=True first_diff=None
+   context only (vllm#54506): probe2 eagle3 vs none: tokens_equal=True first_diff=None
+eagle3  vllm 0.33.0 backend TRITON_ATTN eager=False logprobs=True: 36/36 comparisons bitwise equal
+   context only (vllm#54506): probe0 eagle3 vs none: tokens_equal=True first_diff=None
+   context only (vllm#54506): probe1 eagle3 vs none: tokens_equal=False first_diff=5
+   context only (vllm#54506): probe2 eagle3 vs none: tokens_equal=True first_diff=None
+EXIT=0 2026-11-09T20:54:11Z

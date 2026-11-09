@@ -1,0 +1,29 @@
+START 2026-11-09T20:31:15Z
+ + watchfiles==1.3.0
+ + websockets==17.4
+ + xgrammar==0.2.8
+ + yarl==1.25.1
+ + z3-solver==4.15.4.0
+Installed 1 package in 301ms
+ + fla-core==0.6.0
+Checked 1 package in 3ms
+ + infer-determinism==0.1.0 (from file:///root/infer-determinism)
+ + triton==3.6.0
+ + triton==3.7.1
+ + triton==3.9.0
+name, driver_version, memory.total [MiB], clocks.max.sm [MHz]
+NVIDIA H100 NVL, 580.159.03, 95830 MiB, 1785 MHz
+Mon Nov  9 20:32:00 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 580.159.03             Driver Version: 580.159.03     CUDA Version: 13.4     |
++-----------------------------------------+------------------------+----------------------+
+torch 2.14.0+cu130 cuda 13.0 triton 3.8.0
+vllm 0.33.0
+flashinfer 0.7.2.post1
+fla-core 0.6.0
+overlay triton 3.6.0 /root/tri/3.6.0/triton/__init__.py
+overlay triton 3.7.1 /root/tri/3.7.1/triton/__init__.py
+overlay triton 3.9.0 /root/tri/3.9.0/triton/__init__.py
+................................s............                            [100%]
+44 passed, 1 skipped in 7.47s
+EXIT=0 2026-11-09T20:32:34Z

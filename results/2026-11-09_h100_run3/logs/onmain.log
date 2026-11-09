@@ -1,0 +1,22 @@
+START 2026-11-09T21:00:25Z
+triton main commit: dddf5617b6c406f841d896bf32f14c1c95e064ab
+torch 2.14.0+cu130 | triton 3.9.0 | ptxas Build cuda_13.4.r13.4/compiler.38657139_0 | NVIDIA H100 NVL
+A in registers    BK=64  num_warps=4 num_stages=2: 19/19 runs differ from run 0, worst rel_err=2.60e-02  <-- NONDETERMINISTIC
+A in registers    BK=64  num_warps=4 num_stages=3: 19/19 runs differ from run 0, worst rel_err=1.96e-02  <-- NONDETERMINISTIC
+A in registers    BK=32  num_warps=4 num_stages=3: 19/19 runs differ from run 0, worst rel_err=5.28e-03  <-- NONDETERMINISTIC
+A in registers    BK=64  num_warps=8 num_stages=2: 19/19 runs differ from run 0, worst rel_err=2.63e-02  <-- NONDETERMINISTIC
+A in registers    BK=64  num_warps=2 num_stages=2:  0/19 runs differ from run 0, worst rel_err=9.80e-04
+A in registers    BK=128 num_warps=4 num_stages=2:  0/19 runs differ from run 0, worst rel_err=9.80e-04
+scale after loop  BK=64  num_warps=4 num_stages=2:  0/19 runs differ from run 0, worst rel_err=1.67e-07
+scale after loop  BK=64  num_warps=4 num_stages=3:  0/19 runs differ from run 0, worst rel_err=1.67e-07
+scale after loop  BK=32  num_warps=4 num_stages=3:  0/19 runs differ from run 0, worst rel_err=1.67e-07
+scale after loop  BK=64  num_warps=8 num_stages=2:  0/19 runs differ from run 0, worst rel_err=1.67e-07
+scale after loop  BK=64  num_warps=2 num_stages=2:  0/19 runs differ from run 0, worst rel_err=1.67e-07
+scale after loop  BK=128 num_warps=4 num_stages=2:  0/19 runs differ from run 0, worst rel_err=1.67e-07
+W1109 21:00:33.256000 30734 torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1109 21:00:33.257000 30734 torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1109 21:00:33.257000 30734 torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+config errors: 0
+launches swept: 4, flagged configs: 26, flagged e2e checks: 0, skips: 0, errors: 0
+Wrote /root/reports/run3/control_triton_main.jsonl
+EXIT=0 2026-11-09T21:01:04Z

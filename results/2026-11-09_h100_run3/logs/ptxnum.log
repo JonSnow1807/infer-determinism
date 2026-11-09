@@ -1,0 +1,14 @@
+START 2026-11-09T20:42:52Z
+triton 3.8.0 ptxas Build cuda_13.4.r13.4/compiler.38657139_0 chunk_scaled_dot_kkt_betaafter BK=64 nw=2 ns=2: rel_err=8.481e-08
+triton 3.8.0 ptxas Build cuda_12.9.r12.9/compiler.36037853_0 chunk_scaled_dot_kkt_betaafter BK=64 nw=2 ns=2: rel_err=8.481e-08
+triton 3.8.0 ptxas Build cuda_13.3.r13.3/compiler.37862127_0 chunk_scaled_dot_kkt_betaafter BK=64 nw=2 ns=2: rel_err=8.481e-08
+triton 3.8.0 ptxas Build cuda_13.4.r13.4/compiler.38657139_0 chunk_scaled_dot_kkt_betaafter BK=128 nw=4 ns=2: rel_err=8.481e-08
+triton 3.8.0 ptxas Build cuda_12.9.r12.9/compiler.36037853_0 chunk_scaled_dot_kkt_betaafter BK=128 nw=4 ns=2: rel_err=8.481e-08
+triton 3.8.0 ptxas Build cuda_13.3.r13.3/compiler.37862127_0 chunk_scaled_dot_kkt_betaafter BK=128 nw=4 ns=2: rel_err=8.481e-08
+triton 3.8.0 ptxas Build cuda_13.4.r13.4/compiler.38657139_0 chunk_scaled_dot_kkt BK=64 nw=2 ns=2: rel_err=1.660e-03
+triton 3.8.0 ptxas Build cuda_12.9.r12.9/compiler.36037853_0 chunk_scaled_dot_kkt BK=64 nw=2 ns=2: rel_err=1.660e-03
+triton 3.8.0 ptxas Build cuda_13.3.r13.3/compiler.37862127_0 chunk_scaled_dot_kkt BK=64 nw=2 ns=2: rel_err=1.660e-03
+triton 3.8.0 ptxas Build cuda_13.4.r13.4/compiler.38657139_0 chunk_scaled_dot_kkt BK=128 nw=4 ns=2: rel_err=1.660e-03
+triton 3.8.0 ptxas Build cuda_12.9.r12.9/compiler.36037853_0 chunk_scaled_dot_kkt BK=128 nw=4 ns=2: rel_err=1.660e-03
+triton 3.8.0 ptxas Build cuda_13.3.r13.3/compiler.37862127_0 chunk_scaled_dot_kkt BK=128 nw=4 ns=2: rel_err=1.660e-03
+EXIT=0 2026-11-09T20:44:00Z

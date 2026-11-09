@@ -1,0 +1,8 @@
+START 2026-11-09T20:37:35Z
+W1109 20:37:39.191000 9883 torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1109 20:37:39.192000 9883 torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1109 20:37:39.192000 9883 torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+config errors: 0
+launches swept: 1, flagged configs: 0, flagged e2e checks: 0, skips: 0, errors: 0
+Wrote /root/reports/run3/control_betaafter_triton3.7.1.jsonl
+EXIT=0 2026-11-09T20:38:02Z

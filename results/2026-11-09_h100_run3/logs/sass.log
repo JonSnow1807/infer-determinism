@@ -1,0 +1,12 @@
+START 2026-11-09T20:53:50Z
+ok
+ok
+/root/reports/run3/irdump/minrace/t390/PIHT6PHDPYZD4FH4EUMEUHUAYJ6THALAA6UUU4SFE2O6JLYWF26A/scaled_gram_rega.ptx wgmma=4 waits=      1 wgmma.wait_group.sync.aligned 0       2 wgmma.wait_group.sync.aligned 1 
+/root/reports/run3/irdump/minrace/t390/G27SDXAP4POKA5MK35EVBYIDKDRVK6BOTMYF4SY6MBG2TLRSBYNQ/scaled_gram_smem.ptx wgmma=4 waits=      1 wgmma.wait_group.sync.aligned 0       1 wgmma.wait_group.sync.aligned 1 
+/root/reports/run3/irdump/minrace/t380_ptx134/PIHT6PHDPYZD4FH4EUMEUHUAYJ6THALAA6UUU4SFE2O6JLYWF26A/scaled_gram_rega.ptx wgmma=4 waits=      1 wgmma.wait_group.sync.aligned 0       2 wgmma.wait_group.sync.aligned 1 
+/root/reports/run3/irdump/minrace/t380_ptx134/G27SDXAP4POKA5MK35EVBYIDKDRVK6BOTMYF4SY6MBG2TLRSBYNQ/scaled_gram_smem.ptx wgmma=4 waits=      1 wgmma.wait_group.sync.aligned 0       1 wgmma.wait_group.sync.aligned 1 
+/root/reports/run3/irdump/minrace/t390/PIHT6PHDPYZD4FH4EUMEUHUAYJ6THALAA6UUU4SFE2O6JLYWF26A/scaled_gram_rega.sass HGMMA=4 DEPBAR=3 ARRIVE=2
+/root/reports/run3/irdump/minrace/t390/G27SDXAP4POKA5MK35EVBYIDKDRVK6BOTMYF4SY6MBG2TLRSBYNQ/scaled_gram_smem.sass HGMMA=4 DEPBAR=2 ARRIVE=1
+/root/reports/run3/irdump/minrace/t380_ptx134/PIHT6PHDPYZD4FH4EUMEUHUAYJ6THALAA6UUU4SFE2O6JLYWF26A/scaled_gram_rega.sass HGMMA=4 DEPBAR=3 ARRIVE=2
+/root/reports/run3/irdump/minrace/t380_ptx134/G27SDXAP4POKA5MK35EVBYIDKDRVK6BOTMYF4SY6MBG2TLRSBYNQ/scaled_gram_smem.sass HGMMA=4 DEPBAR=2 ARRIVE=1
+EXIT=0 2026-11-09T20:53:59Z

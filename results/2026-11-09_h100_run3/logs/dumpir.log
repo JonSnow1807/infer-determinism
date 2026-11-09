@@ -1,0 +1,28 @@
+START 2026-11-09T20:38:13Z
+W1109 20:38:15.832000 10912 torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1109 20:38:15.832000 10912 torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1109 20:38:15.833000 10912 torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+BK=64 num_warps=4 num_stages=2: YZDGEQ32HH56I77EH5MDOKHD5EZKYVVEZRHC74JAXXBTSOCNMERA
+  ptx wgmma.mma_async: 4 (A from registers: 4), mma.sync: 0, wgmma.wait_group args: ['0', '1']
+  ttgir: warp_group_dot=5 is_async=2 warp_group_dot_wait=3 local_alloc=1 scf.for=1
+  first wgmma: wgmma.mma_async.sync.aligned.m64n64k16.f32.bf16.bf16 {%r424,%r425,%r426,%r427,%r428,%r429,%r430,%r431,%r432,%r433,%r434,%r435,%r436,%r437,%r438,%r439,%r440,%r44
+BK=128 num_warps=4 num_stages=2: WYNNUBTBIXACFITETZJVVQ7QCI7DRHDOWB4UCLSLWHSWQ2WAY4BA
+  ptx wgmma.mma_async: 8 (A from registers: 8), mma.sync: 0, wgmma.wait_group args: ['0']
+  ttgir: warp_group_dot=1 is_async=0 warp_group_dot_wait=0 local_alloc=2 scf.for=0
+  first wgmma: wgmma.mma_async.sync.aligned.m64n64k16.f32.bf16.bf16 {%r95,%r96,%r97,%r98,%r99,%r100,%r101,%r102,%r103,%r104,%r105,%r106,%r107,%r108,%r109,%r110,%r111,%r112,%r1
+BK=32 num_warps=8 num_stages=3: BQSBXIUD5XTJM6DBVTKNJ55ARJPVH5TN34N6GTWYSXQPCHMHWK5Q
+  ptx wgmma.mma_async: 2 (A from registers: 2), mma.sync: 0, wgmma.wait_group args: ['0', '1']
+  ttgir: warp_group_dot=5 is_async=2 warp_group_dot_wait=3 local_alloc=1 scf.for=1
+  first wgmma: wgmma.mma_async.sync.aligned.m64n32k16.f32.bf16.bf16 {%r284,%r285,%r286,%r287,%r288,%r289,%r290,%r291,%r292,%r293,%r294,%r295,%r296,%r297,%r298,%r299}, {%r37,%r
+W1109 20:38:23.572000 11044 torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1109 20:38:23.573000 11044 torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1109 20:38:23.573000 11044 torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+BK=64 num_warps=4 num_stages=2: M6TJICG54V64HAEYZ644YI72OPYFHBXW3DJJX2RRHDFGYHB3ANNA
+  ptx wgmma.mma_async: 4 (A from registers: 0), mma.sync: 0, wgmma.wait_group args: ['0', '1']
+  ttgir: warp_group_dot=3 is_async=1 warp_group_dot_wait=2 local_alloc=1 scf.for=1
+  first wgmma: wgmma.mma_async.sync.aligned.m64n64k16.f32.bf16.bf16 {%r405,%r406,%r407,%r408,%r409,%r410,%r411,%r412,%r413,%r414,%r415,%r416,%r417,%r418,%r419,%r420,%r421,%r42
+BK=32 num_warps=8 num_stages=3: RXXIJPNOLZ5RF7AVUKJ3BUNSF2YMQIXPKLAHGUM5GPZHQ5PML3FA
+  ptx wgmma.mma_async: 2 (A from registers: 0), mma.sync: 0, wgmma.wait_group args: ['0', '1']
+  ttgir: warp_group_dot=3 is_async=1 warp_group_dot_wait=2 local_alloc=1 scf.for=1
+  first wgmma: wgmma.mma_async.sync.aligned.m64n32k16.f32.bf16.bf16 {%r260,%r261,%r262,%r263,%r264,%r265,%r266,%r267,%r268,%r269,%r270,%r271,%r272,%r273,%r274,%r275}, %rd42, %
+EXIT=0 2026-11-09T20:38:26Z

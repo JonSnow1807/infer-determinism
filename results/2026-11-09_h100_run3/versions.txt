@@ -1,0 +1,13 @@
+name, driver_version, memory.total [MiB], clocks.max.sm [MHz]
+NVIDIA H100 NVL, 580.159.03, 95830 MiB, 1785 MHz
+Mon Nov  9 20:32:00 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 580.159.03             Driver Version: 580.159.03     CUDA Version: 13.4     |
++-----------------------------------------+------------------------+----------------------+
+torch 2.14.0+cu130 cuda 13.0 triton 3.8.0
+vllm 0.33.0
+flashinfer 0.7.2.post1
+fla-core 0.6.0
+overlay triton 3.6.0 /root/tri/3.6.0/triton/__init__.py
+overlay triton 3.7.1 /root/tri/3.7.1/triton/__init__.py
+overlay triton 3.9.0 /root/tri/3.9.0/triton/__init__.py

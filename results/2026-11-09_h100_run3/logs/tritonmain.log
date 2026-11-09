@@ -1,0 +1,13 @@
+START 2026-11-09T20:53:41Z
+dddf5617b6c406f841d896bf32f14c1c95e064ab Mon Nov 9 19:29:42 2026 +0000 [NVIDIA] Fix split `setmaxnreg` instructions in generic warp-specialize dispatch (#12677)
+  !!
+    check.warn(importable)
+  Created wheel for triton: filename=triton-3.9.0+gitdddf5617-cp312-cp312-linux_x86_64.whl size=443942581 sha256=c50ff9e0361c09c2602cae732bd6f2d016895504c654f05d25a3436af159a837
+  Stored in directory: /tmp/pip-ephem-wheel-cache-x746__nb/wheels/dd/f4/0f/465cd3ac216c908ef0a6db13bed5168500d553953673b7cc19
+Successfully built triton
+
+real	5m56.259s
+user	128m53.378s
+sys	9m1.137s
+3.9.0 /root/tri/main/triton/__init__.py
+EXIT=0 2026-11-09T20:59:48Z
