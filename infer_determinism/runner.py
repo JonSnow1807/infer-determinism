@@ -8,7 +8,7 @@ import inspect
 import json
 import os
 import subprocess
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterable
@@ -89,10 +89,14 @@ def _script(case: Case, reference: dict[str, object], candidate: dict[str, objec
         # infer_determinism installation dependency.
         from . import core
         module = importlib.import_module(f"infer_determinism.targets.{case.target}")
-        clean = lambda src: "\n".join(line for line in src.splitlines() if not line.startswith(("from __future__", "from ..core import", "from ..runner import")))
+        clean = lambda src: "\n".join(line for line in src.splitlines() if not line.startswith(("from __future__", "from ..core import", "from ..runner import", "from ._attention import")))
+        helpers = ""
+        if case.target in ("torch_sdpa", "flashinfer", "vllm_flash_attn"):
+            from .targets import _attention
+            helpers = clean(inspect.getsource(_attention)) + "\n"
         return (
             prefix + clean(inspect.getsource(core)) + "\nclass SkipCase(Exception): pass\n"
-            + clean(inspect.getsource(module))
+            + helpers + clean(inspect.getsource(module))
             + "\ncase = next(c for c in cases() if c.name == CASE_NAME)\n"
             + "a = case.run(BatchSpec(**REFERENCE)); b = case.run(BatchSpec(**CANDIDATE))\n"
             + "print('bitwise equal:', compare(a, b).equal)\n"
@@ -104,6 +108,10 @@ def _script(case: Case, reference: dict[str, object], candidate: dict[str, objec
 
 
 def run_case(case: Case, quick: bool = False, run_environment: dict[str, object] | None = None) -> list[dict[str, object]]:
+    # Suite metadata lives in shapes to preserve the Case/target API.
+    if quick and case.shapes.get("full_only", False):
+        return [{"type": "skip", "target": case.target, "case": case.name,
+                 "reason": "full-only case (omit --quick to run)"}]
     records: list[dict[str, object]] = []
     run_environment = run_environment or environment()
     base = case.baseline
@@ -111,10 +119,13 @@ def run_case(case: Case, quick: bool = False, run_environment: dict[str, object]
         reference = case.run(base).detach().clone()
         for perturbation, spec in probe_specs(case, quick):
             try:
+                reference_spec = replace(spec, graph_capture_kv_length=0) if perturbation == "graph_replay" else base
+                comparison_reference = case.run(reference_spec).detach().clone() if perturbation == "graph_replay" else reference
                 candidate = case.run(spec)
-                delta = compare(reference, candidate)
+                delta = compare(comparison_reference, candidate)
             except SkipCase as exc:
-                records.append({"type": "skip", "target": case.target, "case": case.name, "perturbation": perturbation, "reason": str(exc)})
+                records.append({"type": "skip", "target": case.target, "case": case.name, "perturbation": perturbation,
+                                "shapes": dict(case.shapes), "config": spec.json(), "reason": str(exc)})
                 continue
             except Exception as exc:
                 records.append({"type": "error", "target": case.target, "case": case.name, "perturbation": perturbation, "config": spec.json(), "error": f"{type(exc).__name__}: {exc}"})
@@ -123,20 +134,22 @@ def run_case(case: Case, quick: bool = False, run_environment: dict[str, object]
                 payload: dict[str, object] = {
                     "type": "divergence", "target": case.target, "case": case.name,
                     "dtype": case.dtype, "shapes": dict(case.shapes), "perturbation": perturbation,
-                    "reference": base.json(), "candidate": spec.json(),
+                    "reference": reference_spec.json(), "candidate": spec.json(),
                     "environment": run_environment,
                     **asdict(delta),
                 }
                 payload["id"] = hashlib.sha256(json.dumps(payload, sort_keys=True, allow_nan=False).encode()).hexdigest()[:16]
-                payload["repro_script"] = _script(case, base.json(), spec.json(), run_environment)
+                payload["repro_script"] = _script(case, reference_spec.json(), spec.json(), run_environment)
                 records.append(payload)
             else:
                 records.append({"type": "check", "target": case.target, "case": case.name,
-                                "perturbation": perturbation, "config": spec.json(), "equal": True})
+                                "perturbation": perturbation, "config": spec.json(),
+                                "reference": reference_spec.json(), "equal": True})
         if all(r["type"] == "check" for r in records):
             records.append({"type": "pass", "target": case.target, "case": case.name, "checks": len(probe_specs(case, quick))})
     except SkipCase as exc:
-        records.append({"type": "skip", "target": case.target, "case": case.name, "reason": str(exc)})
+        records.append({"type": "skip", "target": case.target, "case": case.name,
+                        "shapes": dict(case.shapes), "config": base.json(), "reason": str(exc)})
     except Exception as exc:
         records.append({"type": "error", "target": case.target, "case": case.name, "error": f"{type(exc).__name__}: {exc}"})
     return records

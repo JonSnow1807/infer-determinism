@@ -4,7 +4,7 @@ Reproducible inference matters for reinforcement learning and evaluations: a req
 
 ## Method
 
-Each case runs a probe request alone as a reference, then repeats it while varying supported batch size, probe position, companion KV length, tile boundary, split setting, or graph replay. The probe inputs and weights stay fixed. Outputs are compared by their raw floating-point bits; JSONL records also report changed element counts, maximum absolute difference, and maximum ordered-bit ULP distance. The harness does not compare against a high-precision oracle.
+Each case runs a probe request alone as a reference, then repeats it while varying supported batch size, probe position, companion KV length, tile boundary, split setting, or graph replay. Graph replay is compared with eager execution of the same final batch so graph effects can be distinguished from batch effects. The probe inputs and weights stay fixed. Outputs are compared by their raw floating-point bits; JSONL records also report changed element counts, maximum absolute difference, and maximum ordered-bit ULP distance. The harness does not compare against a high-precision oracle.
 
 ## Install and run
 
@@ -32,4 +32,6 @@ The [2026-11-06 H100 run](results/2026-11-06_h100/README.md) reports per-target 
 
 ## Status and limits
 
-The published GPU evidence is one H100 NVL run. The attention cases cover head dimension 64, without GQA, sliding-window attention, or FP8 KV cache, and use a single GPU. Results characterize the tested configurations and software versions, not all inference paths or cross-machine reproducibility. Run `python3 -m pytest -q tests` for the CPU harness tests.
+The published GPU evidence is still one H100 NVL run with four heads and head dimension 64. The [second-run plan](docs/run2-plan.md) adds GQA/MQA (32/8, 64/8, 8/1), D128 and supported D256 kernels, sliding windows of 1024/4096 tokens, and scaled e4m3 FP8 KV probes. These additions have CPU contract tests but have not been run on a GPU here. Unsupported dependencies, signatures and known kernel restrictions produce explicit skips.
+
+Quick includes representative D128 cases; larger shapes, 4096-token windows, compiled GEMMs and large legacy sweeps are full-only. Its approximately five-minute H100 budget remains to be measured, especially with cold JIT caches. Full mode retains the complete matrix. The raw attention targets do not test vLLM's native backend selection or full invariant policy; see the [`vllm_attention_layer` deferral](NOTES.md). Results cover one GPU and specific software/configurations, not numerical accuracy or cross-machine reproducibility. Run `python3 -m pytest -q tests` for the CPU harness tests.

@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,7 +7,8 @@ name = "infer-determinism"
 version = "0.1.0"
 description = "Probe bitwise batch invariance of LLM inference kernels"
 authors = [{name = "Chinmay Shrivastava"}]
-license = {text = "MIT"}
+license = "MIT"
+license-files = ["LICENSE"]
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = ["torch>=2.9"]

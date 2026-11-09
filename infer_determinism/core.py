@@ -106,8 +106,8 @@ def probe_specs(case: Case, quick: bool = False) -> list[tuple[str, BatchSpec]]:
     if "tile_m" in case.perturbations:
         ms = (31, 32, 33, 64, 65) if quick else (31, 32, 33, 63, 64, 65, 127, 128, 129, 255, 256, 257)
         specs += [("tile_m", replace(base, batch_size=n, probe_index=0)) for n in ms]
-    if "big_m" in case.perturbations:
-        specs += [("big_m", replace(base, batch_size=n, probe_index=0)) for n in ((512, 1024) if quick else (500, 512, 1000, 1024, 2048, 4096))]
+    if "big_m" in case.perturbations and not quick:
+        specs += [("big_m", replace(base, batch_size=n, probe_index=0)) for n in (500, 512, 1000, 1024, 2048, 4096)]
     if "position" in case.perturbations:
         specs += [("position", replace(base, batch_size=n, probe_index=p)) for n in sizes if n > 1 for p in sorted({n // 2, n - 1})]
     if "other_kv_length" in case.perturbations:
@@ -123,6 +123,7 @@ def probe_specs(case: Case, quick: bool = False) -> list[tuple[str, BatchSpec]]:
     if "tf32" in case.perturbations:
         specs.append(("tf32", replace(base, tf32=not base.tf32)))
     if "graph_replay" in case.perturbations:
-        specs.append(("graph_replay", replace(base, batch_size=3, probe_index=0,
-                                              graph_capture_kv_length=max(1, base.probe_kv_length // 2))))
+        specs += [("graph_replay", replace(base, batch_size=3, probe_index=p,
+                                           graph_capture_kv_length=max(1, base.probe_kv_length // 2)))
+                  for p in (0, 2)]
     return specs

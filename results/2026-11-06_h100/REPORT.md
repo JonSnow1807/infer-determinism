@@ -9,7 +9,6 @@ The per-target JSONL files in this directory are the retained full run. This is 
 - `TORCH_ALLOW_TF32_CUBLAS_OVERRIDE=0` for all runs, `VLLM_BATCH_INVARIANT=1`, `PYTHONUNBUFFERED=1`, image torch library removed from `LD_LIBRARY_PATH`.
 - `CUBLAS_WORKSPACE_CONFIG=:4096:8` for all targets EXCEPT `vllm_invariant_mode`, which ran with it unset so that vLLM's own
   `init_batch_invariance()` sets it (observed value afterwards: `:16:8`, fp32 matmul precision `ieee`).
-- Run time is tiny: whole full suite ~3 minutes (box time used: ~2h incl. setup/debugging).
 
 ## Adapter / harness fixes (in this repository)
 1. flashinfer: `plan(..., data_type=bf16)` rejected by 0.7.x for decode -> `q_data_type/kv_data_type` (error `dtype of q bfloat16 does not match q_data_type float16`).
@@ -23,7 +22,7 @@ The per-target JSONL files in this directory are the retained full run. This is 
 - Original targets ran with no further fixes: torch_matmul, vllm_batch_invariant, moe, vllm_flash_attn (adapter paths/signatures were right for vllm 0.33.0: `vllm.model_executor.determinism.batch_invariant`, `vllm.vllm_flash_attn`).
 - Remaining skips: torch_sdpa float32/FLASH_ATTENTION and float32/CUDNN_ATTENTION ("No available kernel": fp32 unsupported by those backends).
 
-## Full report table (one row per case and perturbation, first divergent config; see the per-target Markdown reports for configs)
+## Full report table (grouped by case; see the per-target Markdown reports for first divergent configs)
 Per-target record counts: torch_matmul 164 divergences/392 checks/8 pass; torch_sdpa 0 div/340 checks/10 pass/2 skip;
 vllm_batch_invariant 0 div/408 checks/12 pass; vllm_invariant_mode 94 div/2586 checks/50 pass; moe 0 div/34 checks/1 pass;
 flashinfer 34 div/415 checks/7 pass; vllm_flash_attn 24 div/256 checks/5 pass. 0 errors in final runs.
@@ -38,8 +37,8 @@ flashinfer 34 div/415 checks/7 pass; vllm_flash_attn 24 div/256 checks/5 pass. 0
 | flashinfer | fa2_fixed_split64tok/batch_{decode,prefill}_long | fixed_split_size (16,32,128,..) | 6.1e-4..9.8e-4 / 115..1182 / 39..29177 | by design (changing the split size changes reduction order) |
 | vllm_flash_attn | FA3/ctx_paged_varlen_long_default_splits | batch, position | 2.4e-4 / 97 / 33 | by design (num_splits=0 heuristic; vLLM forces 1 in invariant mode) |
 
-No divergence (all checks equal) for: vllm_batch_invariant (matmul/log_softmax/mean/rms_norm, bf16/fp16/fp32, hidden 128); vllm_invariant_mode bf16/fp16
-mm/linear/linear_bias/matmul3d, softmax, log_softmax, mean, rms_norm at the tested dims (bf16, fp32 for the elementwise ops) incl. M up to 4096;
+No divergence (all checks equal) for: vllm_batch_invariant (matmul/log_softmax/mean/rms_norm, bf16/fp16/fp32, hidden 128); vllm_invariant_mode bf16
+mm/linear/linear_bias/matmul3d, fp16 mm, softmax, log_softmax, mean, rms_norm at the tested dims (bf16, fp32 for the elementwise ops) incl. M up to 4096;
 vllm_flash_attn FA2 and FA3 with `num_splits=1`, long KV 2048, batch/position/companion-KV/block_size/CUDA-graph replay (graph replay==eager inputs) ;
 flashinfer fa2 `fixed_split_size=64 tokens` (decode+prefill, tensor cores) and `disable_split_kv` (tensor-core decode, prefill) across batch/position/companion KV/block_size/chunk;
 moe (fused_experts); torch_sdpa all runnable backends (repeat/batch/position); repeat-run determinism everywhere (no run-to-run nondeterminism found).

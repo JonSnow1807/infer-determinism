@@ -8,6 +8,7 @@ import torch
 
 from ..core import BatchSpec, Case, seeded
 from ..runner import SkipCase
+from ._attention import AttentionConfig, K_SCALE, V_SCALE, attention_configs, attention_call, fp8_dtype, quantize_fp8, replay_graph, require_keywords
 
 
 def _library():
@@ -19,35 +20,51 @@ def _library():
         raise SkipCase(f"flashinfer-python is missing: {exc}") from exc
 
 
-def _inputs(spec: BatchSpec, q_len: int):
+def _inputs(spec: BatchSpec, q_len: int, config: AttentionConfig = AttentionConfig()):
     queries, keys, values = [], [], []
     for row in range(spec.batch_size):
         length = spec.probe_kv_length if row == spec.probe_index else spec.other_kv_length
-        queries.append(seeded((q_len, 4, 64), spec, row, torch.bfloat16, salt=71))
-        keys.append(seeded((length, 4, 64), spec, row, torch.bfloat16, salt=73))
-        values.append(seeded((length, 4, 64), spec, row, torch.bfloat16, salt=79))
+        queries.append(seeded((q_len, config.num_q_heads, config.head_dim), spec, row, torch.bfloat16, salt=71))
+        keys.append(seeded((length, config.num_kv_heads, config.head_dim), spec, row, torch.bfloat16, salt=73))
+        values.append(seeded((length, config.num_kv_heads, config.head_dim), spec, row, torch.bfloat16, salt=79))
+    if config.fp8:
+        keys = [quantize_fp8(k, K_SCALE) for k in keys]
+        values = [quantize_fp8(v, V_SCALE) for v in values]
     return queries, keys, values
 
 
 def _paged(keys, values, page_size: int):
-    pages, indptr, last = [], [0], []
-    for k, v in zip(keys, values):
-        length = k.shape[0]
-        n = math.ceil(length / page_size)
-        for page in range(n):
-            end = min((page + 1) * page_size, length)
-            kp = torch.zeros((page_size, 4, 64), device="cuda", dtype=k.dtype)
-            vp = torch.zeros_like(kp)
-            kp[:end-page*page_size] = k[page*page_size:end]
-            vp[:end-page*page_size] = v[page*page_size:end]
-            pages.append(torch.stack((kp, vp)))
-        indptr.append(indptr[-1] + n)
-        last.append(length - (n-1)*page_size)
-    cache = torch.stack(pages)
-    ptr = torch.tensor(indptr, device="cuda", dtype=torch.int32)
-    indices = torch.arange(len(pages), device="cuda", dtype=torch.int32)
-    tail = torch.tensor(last, device="cuda", dtype=torch.int32)
-    return cache, ptr, indices, tail
+    # Allocate once; copying an entire request avoids thousands of tiny GPU ops.
+    counts = [math.ceil(len(k) / page_size) for k in keys]
+    cache = keys[0].new_zeros((sum(counts), 2, page_size, *keys[0].shape[1:]))
+    indptr, last = [0], []
+    for k, v, n in zip(keys, values, counts):
+        start = indptr[-1]
+        # The K/V slices have a gap between pages, so use padded temporaries.
+        for side, data in enumerate((k, v)):
+            padded = data.new_zeros((n * page_size, *data.shape[1:]))
+            padded[:len(data)] = data
+            cache[start:start+n, side] = padded.reshape(n, page_size, *data.shape[1:])
+        indptr.append(start + n)
+        last.append(len(k) - (n-1)*page_size)
+    device = cache.device
+    return (cache, torch.tensor(indptr, device=device, dtype=torch.int32),
+            torch.arange(sum(counts), device=device, dtype=torch.int32),
+            torch.tensor(last, device=device, dtype=torch.int32))
+
+
+def _short_metadata(ptr, indices, lengths, page_size, capture_length):
+    """Shorter visible prefixes, retaining each request's physical page mapping."""
+    short_ptr, short_indices, tails = [0], [], []
+    for row, length in enumerate(lengths):
+        length = min(length, capture_length)
+        pages = math.ceil(length / page_size)
+        start = int(ptr[row].item())
+        short_indices.append(indices[start:start+pages])
+        short_ptr.append(short_ptr[-1] + pages)
+        tails.append(length - (pages-1)*page_size)
+    return (torch.tensor(short_ptr, device=ptr.device, dtype=torch.int32),
+            torch.cat(short_indices), torch.tensor(tails, device=ptr.device, dtype=torch.int32))
 
 
 def _split_kwargs(spec: BatchSpec) -> dict:
@@ -61,10 +78,11 @@ def _split_kwargs(spec: BatchSpec) -> dict:
     return kwargs
 
 
-def _run(spec: BatchSpec, kind: str, force_fa2: bool = False, tensor_cores: bool = True) -> torch.Tensor:
+def _run(spec: BatchSpec, kind: str, force_fa2: bool = False, tensor_cores: bool = True,
+         config: AttentionConfig = AttentionConfig()) -> torch.Tensor:
     fi = _library()
     q_len = 1 if "decode" in kind else 8
-    queries, keys, values = _inputs(spec, q_len)
+    queries, keys, values = _inputs(spec, q_len, config)
     if kind.startswith("single"):
         if spec.batch_size != 1:
             raise SkipCase("single-request kernel has no batch dimension")
@@ -78,43 +96,91 @@ def _run(spec: BatchSpec, kind: str, force_fa2: bool = False, tensor_cores: bool
             end = min(start + spec.chunk_size, q_len)
             outputs.append(fi.single_prefill_with_kv_cache(queries[0][start:end], keys[0][:prefix+end], values[0][:prefix+end], causal=True))
         return torch.cat(outputs).clone()
+
+    context = f"FlashInfer {kind}/{config.label}"
+    decode = kind == "batch_decode"
+    cls_name = "BatchDecodeWithPagedKVCacheWrapper" if decode else "BatchPrefillWithPagedKVCacheWrapper"
+    cls = getattr(fi, cls_name, None)
+    if cls is None:
+        raise SkipCase(f"{context}: installed API lacks {cls_name}")
+    # Retain the original workspace budget; paged storage scales with KV heads.
     workspace = torch.zeros(1024 * 1024 * 1024, device="cuda", dtype=torch.uint8)
     cache, ptr, indices, tail = _paged(keys, values, spec.block_size)
-    if kind == "batch_decode":
-        kwargs = {"backend": "fa2", "use_tensor_cores": tensor_cores} if force_fa2 else {}
-        wrapper = fi.BatchDecodeWithPagedKVCacheWrapper(workspace, "NHD", **kwargs)
-        plan_kwargs = _split_kwargs(spec) if force_fa2 else {}
-        wrapper.plan(ptr, indices, tail, 4, 4, 64, spec.block_size, q_data_type=torch.bfloat16, kv_data_type=torch.bfloat16, **plan_kwargs)
-        return wrapper.run(torch.stack([q[0] for q in queries]), cache)[spec.probe_index].clone()
-    wrapper = fi.BatchPrefillWithPagedKVCacheWrapper(workspace, "NHD", **({"backend": "fa2"} if force_fa2 else {}))
+    qptr = torch.arange(spec.batch_size + 1, device="cuda", dtype=torch.int32) * q_len
+    kwargs = {"backend": "fa2"} if force_fa2 else {}
+    if force_fa2 and decode:
+        kwargs["use_tensor_cores"] = tensor_cores
+    if spec.graph_capture_kv_length:
+        if not spec.disable_split_kv:
+            raise SkipCase(f"{context}: graph length changes require disable_split_kv=True (fixed split can change CTA count)")
+        suffix = "buffer" if decode else "buf"
+        kwargs.update({"use_cuda_graph": True,
+                       f"paged_kv_indptr_{suffix}": ptr.clone(),
+                       f"paged_kv_indices_{suffix}": indices.clone(),
+                       f"paged_kv_last_page_len_{suffix}": tail.clone()})
+        if not decode:
+            kwargs["qo_indptr_buf"] = qptr.clone()
+    require_keywords(cls, kwargs, context)
+    wrapper = attention_call(cls, workspace, "NHD", context=context, **kwargs)
     plan_kwargs = _split_kwargs(spec) if force_fa2 else {}
-    if spec.chunk_size:
-        # Only the probe is chunked; compare its full sequence of output rows.
+    plan_kwargs.update(q_data_type=torch.bfloat16,
+                       kv_data_type=fp8_dtype() if config.fp8 else torch.bfloat16)
+    if config.window:
+        plan_kwargs["window_left"] = config.window_left
+    if not decode:
+        plan_kwargs["causal"] = True
+    require_keywords(wrapper.plan, plan_kwargs, context + ".plan")
+    run_kwargs = {"k_scale": K_SCALE, "v_scale": V_SCALE} if config.fp8 else {}
+    require_keywords(wrapper.run, run_kwargs, context + ".run")
+
+    def plan(p, idx, t, qp=qptr):
+        args = (p, idx, t) if decode else (qp, p, idx, t)
+        attention_call(wrapper.plan, *args, config.num_q_heads, config.num_kv_heads,
+                       config.head_dim, spec.block_size, context=context + ".plan", **plan_kwargs)
+
+    def run(q, c, **extra):
+        return attention_call(wrapper.run, q, c, context=context + ".run", **run_kwargs, **extra)
+
+    if spec.chunk_size and not decode:
         outputs = []
         prefix = spec.probe_kv_length - q_len
         for start in range(0, q_len, spec.chunk_size):
             end = min(start + spec.chunk_size, q_len)
             current = [q if i != spec.probe_index else q[start:end] for i, q in enumerate(queries)]
             lengths = [len(k) if i != spec.probe_index else prefix+end for i, k in enumerate(keys)]
-            # Rebuild page metadata so the probe's last page reflects the visible prefix.
-            use_k = [k[:length] for k, length in zip(keys, lengths)]
-            use_v = [v[:length] for v, length in zip(values, lengths)]
-            c, p, idx, t = _paged(use_k, use_v, spec.block_size)
+            c, p, idx, t = _paged([k[:n] for k, n in zip(keys, lengths)],
+                                   [v[:n] for v, n in zip(values, lengths)], spec.block_size)
             starts = [0]
-            for q in current: starts.append(starts[-1] + len(q))
-            qptr = torch.tensor(starts, device="cuda", dtype=torch.int32)
-            wrapper.plan(qptr, p, idx, t, 4, 4, 64, spec.block_size, causal=True,
-                         q_data_type=torch.bfloat16, kv_data_type=torch.bfloat16, **plan_kwargs)
-            out = wrapper.run(torch.cat(current), c)
+            for q in current:
+                starts.append(starts[-1] + len(q))
+            qp = torch.tensor(starts, device="cuda", dtype=torch.int32)
+            plan(p, idx, t, qp)
+            out = run(torch.cat(current), c)
             outputs.append(out[starts[spec.probe_index]:starts[spec.probe_index+1]].clone())
         return torch.cat(outputs)
-    starts = [0]
-    for q in queries: starts.append(starts[-1] + len(q))
-    qptr = torch.tensor(starts, device="cuda", dtype=torch.int32)
-    wrapper.plan(qptr, ptr, indices, tail, 4, 4, 64, spec.block_size, causal=True,
-                 q_data_type=torch.bfloat16, kv_data_type=torch.bfloat16, **plan_kwargs)
-    out = wrapper.run(torch.cat(queries), cache)
-    return out[starts[spec.probe_index]:starts[spec.probe_index+1]].clone()
+
+    q = torch.cat(queries)
+    plan(ptr, indices, tail)
+    if spec.graph_capture_kv_length:
+        require_keywords(wrapper.run, ("out",), context + ".run CUDA graph")
+        output = torch.empty_like(q)
+        # Warm the replay capacity first. All plans stay outside capture.
+        run(q, cache, out=output)
+        short = _short_metadata(ptr, indices, [len(k) for k in keys], spec.block_size,
+                                max(q_len, spec.graph_capture_kv_length))
+        plan(*short)
+        run(q, cache, out=output)
+        torch.cuda.synchronize()
+        graph = torch.cuda.CUDAGraph()
+        with torch.cuda.graph(graph):
+            run(q, cache, out=output)
+        plan(ptr, indices, tail)
+        replay_graph(graph, output)
+        out = output
+    else:
+        out = run(q, cache)
+    start = spec.probe_index * q_len
+    return out[start].clone() if decode else out[start:start+q_len].clone()
 
 
 def cases() -> list[Case]:
@@ -140,4 +206,15 @@ def cases() -> list[Case]:
         Case("flashinfer", "fa2_disable_split_kv_cudacore/batch_decode_long", "bfloat16", {"H": 4, "D": 64, "K": 1024}, lambda spec: _run(spec, "batch_decode", True, False), common, baseline=nosplit),
         Case("flashinfer", "fa2_disable_split_kv/batch_prefill_long", "bfloat16", {"H": 4, "D": 64, "Q": 8, "K": 1024}, lambda spec: _run(spec, "batch_prefill", True), common + ("chunk_size",), baseline=nosplit),
     ]
+    for config, full_only in attention_configs():
+        length = config.window + 128 if config.window else 257
+        baseline = BatchSpec(probe_kv_length=length, other_kv_length=32, disable_split_kv=True)
+        for kind in ("batch_decode", "batch_prefill"):
+            perts = common + (("graph_replay",) if config.window else ())
+            out.append(Case("flashinfer", f"run2/fa2_nosplit/{kind}/{config.label}", "bfloat16",
+                            {**config.shapes(), "Q": 1 if kind == "batch_decode" else 8,
+                             "K": length, "full_only": full_only, "backend": "fa2", "q_dtype": "bfloat16",
+                             "use_tensor_cores": True, "disable_split_kv": True},
+                            lambda spec, k=kind, c=config: _run(spec, k, True, True, c),
+                            perts, baseline=baseline))
     return out

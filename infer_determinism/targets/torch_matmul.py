@@ -57,5 +57,5 @@ def cases() -> list[Case]:
         for op in ("mm", "linear"):
             for compiled in (False, True):
                 name = f"{str(dtype).split('.')[-1]}/{op}/{'compile' if compiled else 'eager'}"
-                output.append(Case("torch_matmul", name, str(dtype), {"K": 128, "N": 128}, lambda spec, d=dtype, o=op, c=compiled: _run(spec, d, o, c), ("repeat", "batch", "position", "tile_m", "tf32") if dtype == torch.float32 else ("repeat", "batch", "position", "tile_m"), REPRO))
+                output.append(Case("torch_matmul", name, str(dtype), {"K": 128, "N": 128, "full_only": compiled}, lambda spec, d=dtype, o=op, c=compiled: _run(spec, d, o, c), ("repeat", "batch", "position", "tile_m", "tf32") if dtype == torch.float32 else ("repeat", "batch", "position", "tile_m"), REPRO))
     return output

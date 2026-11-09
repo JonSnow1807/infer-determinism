@@ -89,13 +89,13 @@ def cases() -> list[Case]:
     for op in ("mm", "linear", "linear_bias", "matmul3d"):
         for dtype in (bf, f16, f32) if op == "mm" else (bf,):
             for k, n in gemm if dtype is bf else gemm[:2]:
-                out.append(Case("vllm_invariant_mode", f"{op}/{str(dtype).split('.')[-1]}/K{k}xN{n}", str(dtype), {"K": k, "N": n},
+                out.append(Case("vllm_invariant_mode", f"{op}/{str(dtype).split('.')[-1]}/K{k}xN{n}", str(dtype), {"K": k, "N": n, "full_only": op != "mm" or (k, n) != (4096, 4096)},
                                 lambda spec, o=op, d=dtype, k=k, n=n: _run(spec, o, d, k, n),
                                 ("repeat", "batch", "position", "tile_m", "big_m")))
     for op, sizes in (("softmax", (4096, 32000, 128256)), ("log_softmax", (4096, 32000, 128256)), ("mean", (4096, 5120, 11008)), ("rms_norm", (4096, 5120, 8192))):
         for dtype in (bf, f32):
             for k in sizes:
-                out.append(Case("vllm_invariant_mode", f"{op}/{str(dtype).split('.')[-1]}/D{k}", str(dtype), {"D": k},
+                out.append(Case("vllm_invariant_mode", f"{op}/{str(dtype).split('.')[-1]}/D{k}", str(dtype), {"D": k, "full_only": k != 4096},
                                 lambda spec, o=op, d=dtype, k=k: _run(spec, o, d, k, 0),
                                 ("repeat", "batch", "position", "tile_m") + (("big_m",) if k < 100000 else ())))
     return out
