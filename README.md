@@ -30,7 +30,7 @@ The JSONL starts with environment metadata. `check` records are equal comparison
 
 The [2026-11-06 H100 run](results/2026-11-06_h100/README.md) reports per-target counts, invariant observations, expected divergences, two bug candidates, and reproduction scripts. The [runner's report](results/2026-11-06_h100/REPORT.md) and per-target JSONL and Markdown files are retained alongside it.
 
-The [2026-11-09 H100 run](results/2026-11-09_h100/README.md) covers the second-run cases: GQA/MQA, D128 and D256, sliding windows and FP8 KV. It found no divergence in vLLM FlashAttention with `num_splits=1` or in FlashInfer decode with `disable_split_kv=True`, and one low-severity candidate: FlashInfer prefill at D128 differs between CUDA-graph replay and eager execution. It also profiles the decode cost of vLLM's batch-invariant mode.
+The [2026-11-09 H100 run](results/2026-11-09_h100/README.md) covers the second-run cases: GQA/MQA, D128 and D256, sliding windows and FP8 KV. It found no divergence in vLLM FlashAttention with `num_splits=1` or in FlashInfer tensor-core decode with `disable_split_kv=True`, and one low-severity candidate: FlashInfer prefill at D128 differs between CUDA-graph replay and eager execution. It also profiles the decode cost of vLLM's batch-invariant mode.
 
 ## Status and limits
 
