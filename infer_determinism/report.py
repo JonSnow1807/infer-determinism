@@ -50,7 +50,8 @@ def sweep_markdown(path: Path) -> str:
     lines = ["# Autotune-config sweep report", "", f"Source: `{path}`", "",
              f"GPU: {meta.get('gpu')} (sm{''.join(map(str, meta.get('capability', [])))}), driver {meta.get('driver')}, "
              f"torch {versions.get('torch')}, triton {versions.get('triton_imported')}, vllm {versions.get('vllm')}, "
-             f"fla {versions.get('fla-core') or versions.get('flash-linear-attention')}", ""]
+             f"fla {versions.get('fla-core') or versions.get('flash-linear-attention')}",
+             "", f"ptxas used for sm_90: {versions.get('ptxas_sm90')}", ""]
     lines += ["## End-to-end outputs vs float32 reference", "",
               "| Scenario | Mode | Rel. error | Deterministic over repeats | Flags | Configs picked |", "|---|---|---|---|---|---|"]
     for r in records:

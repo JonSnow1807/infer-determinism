@@ -427,8 +427,12 @@ def sweep_launch(launch: Launch, *, repeats: int = 3, reference: Reference | Non
                 p0.pop("__stray_writes__", None)
                 p1.pop("__stray_writes__", None)
                 rec["poison_differing"] = {s: fast_compare(p0[s], p1[s]).differing_elements for s in launch.outputs}
-                # Poison 1 is finite, so a nonfinite value here was written by the kernel.
-                rec["nonfinite_written"] = {s: _nonfinite(t) for s, t in p1.items()}
+                # Nonfinite values the kernel wrote: positions where both poisoned runs agree (written,
+                # not poison-dependent) and the unpoisoned run is nonfinite too. A buffer the kernel
+                # also reads (in-place) depends on the poison and is therefore not counted here.
+                rec["nonfinite_written"] = {
+                    s: int((~torch.isfinite(first[s].float()) & (_bits(p0[s]) == _bits(p1[s]))).sum().item())
+                    if first[s].is_floating_point() else 0 for s in launch.outputs}
             except Exception as exc:
                 rec["poison_error"] = f"{type(exc).__name__}: {exc}"
         rec["seconds"] = round(time.perf_counter() - start, 3)

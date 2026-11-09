@@ -17,6 +17,10 @@ export TORCH_ALLOW_TF32_CUBLAS_OVERRIDE=0 PYTHONUNBUFFERED=1
 # The image's torch libraries must not shadow the venv's wheels.
 export LD_LIBRARY_PATH=$(printf '%s' "${LD_LIBRARY_PATH:-}" | tr ':' '\n' | grep -v -E 'torch|python3' | paste -sd: -)
 PY=$VENV/bin/python
+# The NGC image exports TRITON_PTXAS_PATH=/usr/local/cuda/bin/ptxas (CUDA 13.4.1), which overrides the ptxas
+# a pip-installed Triton bundles for sm_90 on releases < 3.9. PTXAS=bundled reproduces a plain pip install.
+SUFFIX=""
+if [ "${PTXAS:-image}" = bundled ]; then unset TRITON_PTXAS_PATH TRITON_PTXAS_BLACKWELL_PATH; SUFFIX=_bundledptxas; fi
 
 overlay() {  # print the PYTHONPATH that selects triton $1 (empty = venv's own pin)
   local v=$1 pinned
@@ -32,6 +36,8 @@ setup)
   $VENV/bin/uv pip install --python $PY --no-deps 'fla-core==0.6.0' 2>&1 | tail -2
   $VENV/bin/uv pip install --python $PY einops 2>&1 | tail -1
   $VENV/bin/uv pip install --python $PY --no-deps -e "$REPO" 2>&1 | tail -1
+  # Positive-control kernel source (vLLM v0.19.1) beside the 0.33 vendored ops; adds a module, changes nothing else.
+  cp "$REPO/scripts/vendored/chunk_scaled_dot_kkt_v0191.py" "$($PY -c 'import os, vllm.third_party.flash_linear_attention.ops as m; print(os.path.dirname(m.__file__))')/"
   for v in 3.6.0 3.7.1 3.9.0; do
     $VENV/bin/uv pip install --no-deps --target "/root/tri/$v" "triton==$v" 2>&1 | tail -1
   done
@@ -51,17 +57,19 @@ setup)
   ;;
 control)
   v=${2:?triton version}
-  export PYTHONPATH=$(overlay "$v") TRITON_CACHE_DIR=/root/tc/$v
-  $PY "$REPO/scripts/repro_kkt_issue65385.py" 2>&1 | tee "$OUT/control_issue_script_triton$v.txt"
-  $PY -m infer_determinism sweep --scenarios kkt_issue65385 kkt_issue65385_fla --repeats 5 --out "$OUT/control_triton$v.jsonl"
-  $PY -m infer_determinism sweep-report "$OUT/control_triton$v.jsonl" > "$OUT/control_triton$v.md"
+  export PYTHONPATH=$(overlay "$v") TRITON_CACHE_DIR=/root/tc/$v$SUFFIX
+  $PY "$REPO/scripts/repro_kkt_issue65385.py" 2>&1 | tee "$OUT/control_issue_script_triton$v$SUFFIX.txt"
+  $PY "$REPO/scripts/repro_kkt_issue65385.py" vllm.third_party.flash_linear_attention.ops.chunk_scaled_dot_kkt_v0191 2>&1 | tee "$OUT/control_issue_script_v0191_triton$v$SUFFIX.txt"
+  $PY -m infer_determinism sweep --scenarios ${CONTROL_SCENARIOS:-kkt_issue65385_v0191 kkt_issue65385 kkt_issue65385_fla} --repeats 5 --out "$OUT/control${OUTTAG:+_$OUTTAG}_triton$v$SUFFIX.jsonl"
+  $PY -m infer_determinism sweep-report "$OUT/control${OUTTAG:+_$OUTTAG}_triton$v$SUFFIX.jsonl" > "$OUT/control${OUTTAG:+_$OUTTAG}_triton$v$SUFFIX.md"
   ;;
 sweep)
   v=${2:?triton version}; shift 2
-  export PYTHONPATH=$(overlay "$v") TRITON_CACHE_DIR=/root/tc/$v
+  export PYTHONPATH=$(overlay "$v") TRITON_CACHE_DIR=/root/tc/$v$SUFFIX
   scen=${*:-gdn_vllm_fixed gdn_vllm_varlen kda_vllm_varlen kda_kimik3_varlen mamba2_ssd_varlen gdn_fla_varlen}
-  $PY -m infer_determinism sweep --scenarios $scen --repeats 3 --out "$OUT/sweep_triton$v.jsonl"
-  $PY -m infer_determinism sweep-report "$OUT/sweep_triton$v.jsonl" > "$OUT/sweep_triton$v.md"
+  tag=${OUTTAG:+_$OUTTAG}$SUFFIX
+  $PY -m infer_determinism sweep --scenarios $scen --repeats 3 --out "$OUT/sweep_triton$v$tag.jsonl"
+  $PY -m infer_determinism sweep-report "$OUT/sweep_triton$v$tag.jsonl" > "$OUT/sweep_triton$v$tag.md"
   ;;
 fa3)
   export VLLM_BATCH_INVARIANT=1 CUBLAS_WORKSPACE_CONFIG=:4096:8

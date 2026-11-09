@@ -1,4 +1,4 @@
-"""vllm#65385's repro_kkt_issue.py, with import fallbacks (vLLM >= 0.33 path, then upstream FLA).
+"""vllm#65385's repro_kkt_issue.py, with import fallbacks (argv module paths, vLLM >= 0.33 path, then upstream FLA).
 
 Unchanged logic: for every autotune config of chunk_scaled_dot_kkt_fwd_kernel, run the kernel twice
 on identical inputs and compare with a float32 reference (T=4096, H=32, K=128, BT=64).
@@ -9,8 +9,10 @@ import torch
 import torch.nn.functional as F
 import triton
 
+import sys
+
 M, SOURCE = None, None
-for path in ("vllm.third_party.flash_linear_attention.ops.chunk_scaled_dot_kkt",
+for path in tuple(sys.argv[1:]) + ("vllm.third_party.flash_linear_attention.ops.chunk_scaled_dot_kkt",
              "vllm.model_executor.layers.fla.ops.chunk_scaled_dot_kkt",
              "fla.ops.common.chunk_scaled_dot_kkt"):
     try:

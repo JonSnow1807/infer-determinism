@@ -89,7 +89,7 @@ def run(args) -> dict[str, object]:
     sizes = [int(x) for x in args.batch_sizes.split(",")]
     llm = LLM(model=args.model, speculative_config=spec, attention_config={"backend": args.backend},
               max_num_seqs=max(sizes), max_model_len=args.max_model_len, gpu_memory_utilization=args.gpu_mem,
-              seed=0, enforce_eager=args.eager)
+              seed=0, enforce_eager=args.eager, disable_log_stats=False)
     want_lp = 1
     params = SamplingParams(temperature=0.0, max_tokens=args.max_tokens, logprobs=want_lp)
     try:
@@ -118,8 +118,8 @@ def run(args) -> dict[str, object]:
                 outs = llm.generate(prompts, plist, use_tqdm=False)
                 got = extract(outs[pos])
                 results.append({"probe": p, "batch_size": bs, "position": pos, "compare": "batched_vs_alone", **diff(alone, got)})
-    metrics = {}
-    try:
+    metrics: dict[str, object] = {}
+    try:  # proves drafts were proposed and accepted (spec decode actually exercised)
         for m in llm.get_metrics():
             if "spec_decode" in m.name:
                 metrics[m.name] = getattr(m, "value", None) if hasattr(m, "value") else getattr(m, "values", None)

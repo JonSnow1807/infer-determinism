@@ -88,7 +88,12 @@ def _segments(T: int, B: int, cu: torch.Tensor | None) -> list[tuple[int, int, i
 # Kernel-level references (inputs are the captured launch arguments)
 
 
-def ref_kkt(launch: Launch) -> dict[str, torch.Tensor]:
+def ref_kkt_exp2(launch: Launch) -> dict[str, torch.Tensor]:
+    """Upstream FLA >= 0.6 keeps g in log2 space (chunk_local_cumsum scale=RCP_LN2) and gates with exp2."""
+    return ref_kkt(launch, base2=True)
+
+
+def ref_kkt(launch: Launch, base2: bool = False) -> dict[str, torch.Tensor]:
     """A[t,h,j] = beta[t,h] * exp(g[t,h]-g[s,h]) * <k[t], k[s]>, s = chunk start + j < t."""
     a = launch.inputs()
     k, beta, g = a["k"].float(), a["beta"].float(), a.get("g")
@@ -106,7 +111,7 @@ def ref_kkt(launch: Launch) -> dict[str, torch.Tensor]:
             A = torch.einsum("ihk,jhk->hij", kc * beta[b, c0:c1, :, None], kc)
             if g is not None:
                 gc = g[b, c0:c1].float().T  # [H, n]
-                A = A * torch.exp(gc[:, :, None] - gc[:, None, :])
+                A = A * (torch.exp2 if base2 else torch.exp)(gc[:, :, None] - gc[:, None, :])
             A = A * torch.ones(n, n, device=k.device).tril(-1)
             out[b, c0:c1, :, :n] = A.permute(1, 0, 2)
     return {"A": out}
@@ -255,15 +260,24 @@ def _cu(seqlens, device) -> torch.Tensor:
     return torch.tensor([0, *torch.tensor(seqlens).cumsum(0).tolist()], device=device, dtype=torch.int32)
 
 
-def build_kkt_issue(kind: str = "vllm") -> Built:
-    """The exact inputs of vllm#65385's repro_kkt_issue.py (T=4096, H=32, K=128, BT=64)."""
+def build_kkt_issue(kind: str = "vllm", K: int = 128) -> Built:
+    """The exact inputs of vllm#65385's repro_kkt_issue.py (T=4096, H=32, K=128, BT=64).
+
+    kind="fla" feeds the same natural-log g to upstream FLA, whose kernel gates with exp2,
+    so it computes a different (but self-consistent) function; it is checked against
+    ref_kkt_exp2, not compared numerically with the vLLM kernel.
+    """
     dev = _cuda()
     if kind == "vllm":
         mod = _vllm_fla("chunk_scaled_dot_kkt")
         fwd = mod.chunk_scaled_dot_kkt_fwd
+    elif kind == "vllm0191":  # v0.19.1 kernel source installed beside the 0.33 ops (scripts/vendored)
+        fwd = _vllm_fla("chunk_scaled_dot_kkt_v0191").chunk_scaled_dot_kkt_fwd
+    elif kind == "betaafter":  # experiment: beta applied after the K loop (scripts/vendored)
+        fwd = _vllm_fla("chunk_scaled_dot_kkt_betaafter").chunk_scaled_dot_kkt_fwd
     else:
         fwd = _import("fla.ops.common.chunk_scaled_dot_kkt").chunk_scaled_dot_kkt_fwd
-    T, H, K, BT = 4096, 32, 128, 64
+    T, H, BT = 4096, 32, 64
     r = _gen(0, dev)
     k = F.normalize(r(1, T, H, K), dim=-1).bfloat16()
     beta = torch.sigmoid(r(1, T, H)).bfloat16()
@@ -401,14 +415,22 @@ GDN_REFS = {
 SCENARIOS: dict[str, Scenario] = {s.name: s for s in (
     Scenario("kkt_issue65385", "vLLM vendored chunk_scaled_dot_kkt_fwd on the vllm#65385 inputs (positive control)",
              lambda: build_kkt_issue("vllm"), {"chunk_scaled_dot_kkt_fwd_kernel": ref_kkt}),
-    Scenario("kkt_issue65385_fla", "upstream FLA chunk_scaled_dot_kkt_fwd on the vllm#65385 inputs",
-             lambda: build_kkt_issue("fla"), {"chunk_scaled_dot_kkt_fwd_kernel": ref_kkt}),
+    Scenario("kkt_k256", "vLLM vendored chunk_scaled_dot_kkt_fwd with head dim K=256 (BK=128 also loops), otherwise vllm#65385 inputs",
+             lambda: build_kkt_issue("vllm", K=256), {"chunk_scaled_dot_kkt_fwd_kernel": ref_kkt}),
+    Scenario("kkt_k256_betaafter", "EXPERIMENT: beta-after-loop kkt with K=256",
+             lambda: build_kkt_issue("betaafter", K=256), {"chunk_scaled_dot_kkt_fwd_kernel": ref_kkt}),
+    Scenario("kkt_issue65385_v0191", "vLLM v0.19.1 chunk_scaled_dot_kkt source (the version vllm#65385 used) on its inputs",
+             lambda: build_kkt_issue("vllm0191"), {"chunk_scaled_dot_kkt_fwd_kernel": ref_kkt}),
+    Scenario("kkt_issue65385_betaafter", "EXPERIMENT: vLLM 0.33 kkt with beta applied after the K loop, vllm#65385 inputs",
+             lambda: build_kkt_issue("betaafter"), {"chunk_scaled_dot_kkt_fwd_kernel": ref_kkt}),
+    Scenario("kkt_issue65385_fla", "upstream FLA chunk_scaled_dot_kkt_fwd on the vllm#65385 inputs (g in log2 space)",
+             lambda: build_kkt_issue("fla"), {"chunk_scaled_dot_kkt_fwd_kernel": ref_kkt_exp2}),
     Scenario("gdn_vllm_fixed", "vLLM vendored chunk_gated_delta_rule, B=1 T=4096 H=Hk=32 K=V=128, l2norm, h0",
              lambda: build_gdn("vllm", None, 32, 32), dict(GDN_REFS)),
     Scenario("gdn_vllm_varlen", "vLLM vendored chunk_gated_delta_rule, 3 seqs (1000/1600/1496), Hk=16 H=32 (Qwen3-Next TP1)",
              lambda: build_gdn("vllm", SEQLENS, 16, 32), dict(GDN_REFS)),
     Scenario("gdn_fla_varlen", "upstream FLA chunk_gated_delta_rule, same inputs as gdn_vllm_varlen",
-             lambda: build_gdn("fla", SEQLENS, 16, 32), {"chunk_scaled_dot_kkt_fwd_kernel": ref_kkt}),
+             lambda: build_gdn("fla", SEQLENS, 16, 32), {"chunk_scaled_dot_kkt_fwd_kernel": ref_kkt_exp2}),
     Scenario("kda_vllm_varlen", "vLLM vendored chunk_kda (Kimi Linear), 3 seqs, H=32 K=V=128, l2norm, h0",
              lambda: build_kda("vllm", SEQLENS), {"l2norm_fwd_kernel": ref_l2norm, "l2norm_fwd_kernel1": ref_l2norm}),
     Scenario("kda_kimik3_varlen", "vLLM Kimi-K3 NVIDIA chunk_kda copy, same inputs as kda_vllm_varlen",
@@ -436,10 +458,19 @@ def sweep_environment() -> dict[str, object]:
         versions["triton_imported"] = f"{triton.__version__} @ {triton.__file__}"
     except Exception as exc:
         versions["triton_imported"] = f"unavailable: {exc}"
+    try:  # the assembler Triton hands sm_90 (TRITON_PTXAS_PATH / bundled ptxas or ptxas-blackwell)
+        import subprocess
+        from triton.backends.nvidia.compiler import get_ptxas
+        tool = get_ptxas(90) if get_ptxas.__code__.co_argcount else get_ptxas()
+        ver = subprocess.run([tool.path, "--version"], capture_output=True, text=True).stdout.strip().splitlines()[-1]
+        versions["ptxas_sm90"] = f"{tool.path} ({ver})"
+    except Exception as exc:
+        versions["ptxas_sm90"] = f"unknown: {type(exc).__name__}: {exc}"
     env["versions"] = versions
     import os
     env["env"] = {**dict(env.get("env", {})),  # type: ignore[arg-type]
                   **{k: os.environ.get(k) for k in ("TRITON_CACHE_DIR", "PYTHONPATH", "VLLM_TRITON_FORCE_FIRST_CONFIG",
+                                                    "TRITON_PTXAS_PATH", "TRITON_PTXAS_BLACKWELL_PATH",
                                                     "FLA_USE_CUDA_GRAPH", "TORCH_ALLOW_TF32_CUBLAS_OVERRIDE")}}
     if torch.cuda.is_available():
         env["capability"] = list(torch.cuda.get_device_capability(0))

@@ -257,3 +257,13 @@ def test_stray_writes_flagged(monkeypatch):
     rows = sw.sweep_launch(cap.launches[0], repeats=2)
     by = {r["config_index"]: r for r in rows if r["type"] == "sweep_config"}
     assert by[0]["flags"] == [] and by[1]["flags"] == ["stray_writes"] and by[1]["stray_writes"] == {"x": 4}
+
+
+def test_inplace_kernel_not_flagged_nonfinite_by_finite_poison(monkeypatch):
+    monkeypatch.setattr(sw, "INVALID_CONFIG_ERRORS", (RuntimeError,))
+    def body(x, N, MODE="ok"):
+        x.sqrt_()  # reads and writes the same buffer; poison -7777 gives NaN
+    tuner = FakeAutotuner(FakeKernel(body), ["x", "N"], [FakeConfig({}, w) for w in (1, 2, 4)])
+    cap = sw.capture(lambda: tuner.run(torch.full((4,), 4.0), 4), "inplace", autotuner_cls=FakeAutotuner)
+    rows = sw.sweep_launch(cap.launches[0], repeats=2, reference=lambda l: {"x": torch.full((4,), 2.0)})
+    assert all(r["flags"] == [] for r in rows if r["type"] == "sweep_config")
